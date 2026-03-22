@@ -607,13 +607,16 @@ This gap is noted here as an honest architectural limitation. EvoIntel provides 
 3. Publish the Five Blindnesses article + launch content sequence
 4. Spec-first layer in `/plan` command for complex features
 
-### Later: Calibration + Enterprise (Q3-Q4 2026)
+### Later: Calibration + Cross-Sidecar Wiring (Q3-Q4 2026)
 
 1. Closed-loop calibration: map predicted risk (Seraph grade) to observed outcomes (Niobe runtime signals post-deploy)
 2. Weight tuning: adjust verdict scoring by empirical false positives/negatives
 3. Policy gates: block merge if critical security findings > 0, if breaking consumer impact unresolved, if runtime regression above threshold
 4. Compliance exports: PCI DSS 6.2.3, SOC 2, SSDF evidence formatting
 5. Signed audit trail across all tools
+6. Niobe → Sentinel auto-pitfalls: runtime anomalies Niobe detects become Sentinel pitfall entries automatically, so the next dev loop session sees them in CHECK phase without manual `sentinel_solution_save`
+7. Merovingian → Morpheus gate: breaking changes detected by Merovingian block ADVANCE until consumer impact is resolved — the data exists today but the enforcement doesn't
+8. Seraph → Sentinel convention detection: recurring mutation-surviving patterns across plans become Sentinel conventions automatically, closing the loop between grading and project intelligence
 
 ### Horizon: Multi-Agent + Platform (2027)
 
