@@ -2,7 +2,7 @@
 
 **The Five Blindnesses Framework, the Dev Loop Protocol, and the MCP Suite**
 
-Version 3.1 | March 18, 2026 | Evolving Intelligence AI
+Version 3.2 | March 19, 2026 | Evolving Intelligence AI
 
 **Author:** Nicholas Smith — AI Innovator, ServiceNow Developer, Software Designer. Founder & CEO of Evolving Intelligence AI. Built the EvoIntel MCP suite as open-source infrastructure for verified AI-assisted development.
 
@@ -16,13 +16,13 @@ AI coding agents are not limited by intelligence. They are limited by blindness 
 
 EvoIntel addresses this with four layers:
 
-1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 40 MCP interfaces. 900+ tests. SQLite + WAL + FTS5. No cloud. No Docker.
+1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 42 MCP interfaces. 940+ tests. SQLite + WAL + FTS5. No cloud. No Docker.
 
-2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a pre-code checkpoint and post-code self-critique. Now with **enforced evidence gates** — agents must prove they checked, not just claim they did.
+2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a single post-code review pass with **enforced evidence gates** — agents must prove they checked, not just claim they did.
 
-3. **The Dev Loop** — An autonomous development protocol that orchestrates the suite into a coherent cycle: bootstrap MCP servers once, then for each task: check intelligence, code with FDMC, test, self-critique, grade with mutation testing, commit with knowledge persistence, advance. Closes the feedback loop at end of plan.
+3. **The Dev Loop** — An autonomous development protocol that orchestrates the suite into a coherent cycle: bootstrap MCP servers once, then for each task: check intelligence, code with FDMC, test, self-critique, grade with mutation testing, commit with knowledge persistence, advance. Now **adaptive** — adjusts gate strictness by task size and project maturity. Closes the feedback loop at end of plan.
 
-4. **Morpheus** — An MCP-based orchestration server that tracks plan state with enforced phase gates. The Dev Loop skill is the brain (protocol in the agent's context). Morpheus is the nervous system (state persistence + gate enforcement). Agents must submit evidence to advance — the server rejects empty claims.
+4. **Morpheus** — An MCP-based orchestration server that tracks plan state with enforced phase gates. The Dev Loop skill is the brain (protocol in the agent's context). Morpheus is the nervous system (state persistence + gate enforcement). Now with **task size tiers** (small/medium/large), **greenfield mode**, **batch advance**, and **progress logging**. Agents must submit evidence to advance — the server rejects empty claims.
 
 Together, these form a complete verification infrastructure for AI-assisted development — from project understanding through implementation through quality gate through knowledge persistence. The protocol is not advisory. It is enforced.
 
@@ -92,9 +92,9 @@ The AI doesn't get smarter. It gets informed.
 | Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.0 | 187 | 10 | API contracts, consumer relationships, breaking changes |
 | Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.1 | 187 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security |
 | Web content | [**Anno**](https://github.com/evo-hydra/anno) | 1.0.1 | 101 | 4 | Clean text from any URL via 5-extractor ensemble |
-| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.1.1 | 83 | 4 | Plan state, phase gates, evidence validation, task lifecycle |
+| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.2.0 | 134 | 6 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging |
 
-**Total: 6 servers. 40 MCP interfaces. 900+ tests. Open source.**
+**Total: 6 servers. 42 MCP interfaces. 950+ tests. Open source.**
 
 ### Sentinel: Institutional Memory
 
@@ -127,13 +127,21 @@ Morpheus fixes this by making the protocol enforceable. It tracks plan state (pl
 | Phase | Required Evidence |
 |-------|-------------------|
 | CHECK | *(none — entry point)* |
-| CODE | FDMC preflight with 4 lens answers; Consistent must include `sibling_read` file path |
+| CODE | `sibling_read` — file path of the sibling read for the Consistent check (or "N/A" for greenfield) |
 | TEST | Build verification output |
-| GRADE | Test results |
-| COMMIT | Seraph assessment ID (or grade disabled) |
-| ADVANCE | Knowledge gate: solution saved, solution verified, or explicit "nothing surprised" |
+| GRADE | Test results + `fdmc_review` — post-code FDMC lens one-liner |
+| COMMIT | Seraph assessment ID (or `skip_reason` for intentional skips) |
+| ADVANCE | Knowledge gate: solution saved, solution verified, `"nothing_surprised"` + reason, or `"true"` |
 
-Two layers of enforcement work together. **Evidence validation**: agents cannot advance past CODE without proving they read a sibling file — the server rejects empty or missing evidence. **Sequential ordering**: the server enforces phase order — an agent cannot skip from CHECK to ADVANCE without completing every intermediate phase. These two gates together prevent both the #1 FDMC violation (Consistent lens failures) and the broader pattern of agents optimizing for speed by skipping "slow" verification steps.
+**Adaptive protocol (v0.2.0)**: Morpheus now adapts gate strictness based on task complexity and project maturity:
+
+- **Task size tiers** (`size: small/medium/large` in plan files) — SMALL tasks skip fdmc, seraph, and knowledge gates for lightweight pass-through. LARGE tasks enforce Seraph grading even when `grade: false`. MEDIUM tasks (default) get the full protocol.
+- **Greenfield mode** (`mode: greenfield` in plan frontmatter) — relaxes `sibling_read` requirement when all files are new and there are no existing siblings to read.
+- **Batch advance** (`morpheus_advance_batch`) — processes multiple phase advances in a single MCP call, cutting 80%+ of protocol overhead for small/tail-end tasks.
+- **Progress logging** (`morpheus_progress`) — log observational progress without advancing phases, visible in `morpheus_status` output.
+- **Merged FDMC** — FDMC is now a single post-code pass (Phase 4a), not a pre-flight + post-review dual pass. CODE phase requires only `sibling_read` (the check that actually prevents bugs). GRADE phase includes the full FDMC review. This halves FDMC ceremony without losing enforcement value.
+
+Three layers of enforcement work together. **Evidence validation**: agents cannot advance past CODE without proving they read a sibling file — the server rejects empty or missing evidence. **Sequential ordering**: the server enforces phase order — an agent cannot skip from CHECK to ADVANCE without completing every intermediate phase. **Size-aware gates**: the server adjusts strictness per task, preventing the 6-phase ceremony from being applied uniformly to 30-line components and 200-line subsystems alike. These gates together prevent both the #1 FDMC violation (Consistent lens failures) and the broader pattern of agents optimizing for speed by skipping "slow" verification steps.
 
 The Dev Loop skill (`/morpheus`) remains the brain — it loads the full protocol into the agent's context. Morpheus MCP is the nervous system — it persists state and rejects invalid advances. The skill gives agents understanding. The server gives them guardrails.
 
@@ -145,7 +153,7 @@ The Dev Loop skill (`/morpheus`) remains the brain — it loads the full protoco
 
 ### The Four Lenses
 
-FDMC encodes the judgment that models lack. Before and after every code change:
+FDMC encodes the judgment that models lack. Applied as a single post-code review pass (v3.2 merged the pre-flight and post-review into one):
 
 - **Future-Proof** — Will this break when requirements change? Avoid tight coupling to current assumptions. Am I baking in assumptions about callers, data shapes, or execution order?
 
@@ -173,11 +181,11 @@ FDMC v1 was "read these bullet points before coding." It was ignored.
 
 FDMC v2 added two checkpoints (pre-code and post-code) with concrete red flags. It was an improvement, but the agent still rubber-stamped its own checks. During the hex-engine case study, the agent wrote `FDMC: Consistent — matched existing pattern` without ever reading a sibling file. The sunk-cost bias is real: the agent just wrote the code, so of course it thinks the code is correct.
 
-FDMC v3 makes the checkpoint an **enforced gate** via Morpheus MCP. The agent cannot advance past Phase 2 (CODE) without submitting evidence that includes the file path it read for the Consistent check (`sibling_read`). The server doesn't judge whether the analysis is *correct* — it can't. But it rejects advances where the evidence is *empty*. This turns FDMC from an honor system into a checkpoint with receipts.
+FDMC v3 made the checkpoint an **enforced gate** via Morpheus MCP. v3.2 streamlines it further: **one FDMC pass, post-code, with the consistency check as the only pre-code gate.**
 
-**Pre-code (Phase 2a)**: Answer the four questions. The Consistent check requires examining how sibling systems are structured — where they live, who owns them, how they're wired in. **Submit evidence to Morpheus with the sibling file path.**
+**Pre-code (Phase 2a)**: Read one sibling file. Submit the file path as `sibling_read` evidence to Morpheus. The other three lenses (Future-Proof, Dynamic, Modular) are a mental checklist — internalized, not gated. This focuses enforcement on the check that actually prevents bugs (Consistent) while removing ceremony from the checks that are self-evident during coding.
 
-**Post-code (Phase 4a)**: Self-review the diff through each lens. Concrete red flags:
+**Post-code (Phase 4a)**: The single FDMC review pass. Self-review the diff through all four lenses. Submit the `fdmc_review` one-liner as part of GRADE evidence. Concrete red flags:
 
 | Lens | Red Flag |
 |------|----------|
@@ -245,9 +253,9 @@ If Sentinel available:
 If Merovingian available and task modifies APIs/serialized types:
 - `merovingian_breaking` + `merovingian_impact`
 
-### Phase 2: CODE (FDMC pre-flight + implementation)
+### Phase 2: CODE (consistency check + implementation)
 
-FDMC pre-flight: answer the four questions. Check how siblings are structured. Then implement minimum code to satisfy acceptance criteria.
+Read one sibling file. Submit `sibling_read` evidence to Morpheus. Mentally check Future-Proof, Dynamic, Modular. Then implement minimum code to satisfy acceptance criteria.
 
 ### Phase 3: TEST
 
@@ -255,7 +263,7 @@ Run test command. If Niobe registered: snapshot before/after, compare for regres
 
 ### Phase 4: FDMC CRITIQUE + GRADE
 
-**4a.** Self-review diff through each lens. Fix structural violations (parallel types, wrong ownership model). Note the FDMC result.
+**4a.** Single FDMC pass: self-review diff through all four lenses. Fix structural violations (parallel types, wrong ownership model). Submit `fdmc_review` one-liner as part of GRADE evidence.
 
 **4b.** `seraph_assess` with `ref_before=<previous commit>` to grade only this task. Do NOT skip mutations. A/B: proceed. C: fix. D/F: fail task.
 
@@ -341,6 +349,20 @@ The Dev Loop v2 built its own orchestrator. morpheus-mcp is the enforcement laye
 
 **Key insight**: The agent that designed the FDMC enforcement system violated FDMC while building it. This validates the entire thesis — self-critique is insufficient. Enforcement is necessary.
 
+### Case Study: morpheus-mcp v0.2.0 Adaptive Protocol (March 19, 2026)
+
+The Dev Loop v3 was used to enhance itself. A 25-task greenfield run produced detailed feedback on protocol pain points, which was analyzed and turned into a 20-task plan to make the protocol adaptive. The plan was then executed by the protocol it was improving — the second bootstrap.
+
+**Plan**: 20 tasks. Task size tiers (models, parser, store, engine, tests), greenfield mode (model, store, engine, tests), batch advance (engine, server, tests), progress logging (store, server, formatters, tests), FDMC merge (skill, engine, tests), formatter polish, integration test.
+
+**Results**: 20/20 tasks completed. 16 commits. 121 tests passing (up from 83). Zero regressions. Test suite grew 46% while maintaining zero failures throughout all 20 task cycles.
+
+**What the protocol proved about itself:**
+- The 6-phase ceremony worked well for tasks 1-10 (real implementation). By tasks 14-20 (tests and polish), the overhead was noticeable — exactly the feedback the plan was designed to fix.
+- Seraph grading was vacuous because morpheus-mcp lives as a subdirectory of a non-git-root monorepo. This confirmed the "greenfield mode" need — tools that assume git context need graceful degradation.
+- Backward compatibility for `fdmc_preflight` format was needed — the running Morpheus MCP server still had old gates while we were shipping the new ones. The old format auto-extracts `sibling_read` from the nested JSON.
+- The protocol dogfooding its own improvement is the strongest possible validation: if the protocol can't improve itself efficiently, it can't improve anything else.
+
 ### v1 → v2 Changes
 
 These failures directly informed the v2 protocol:
@@ -358,9 +380,32 @@ The morpheus-mcp case study and honest self-assessment of FDMC compliance inform
 
 - **Morpheus MCP server**: Plan state persisted in SQLite, not markdown files. Phase gates enforced with evidence, not honor system.
 - **FDMC evidence gates**: Agents must submit `sibling_read` file path to advance past CODE. The server rejects empty claims.
-- **Knowledge gate**: Agents must explicitly save a pitfall, verify a solution, or state "nothing surprised me" before advancing. Silent advancement is impossible.
+- **Knowledge gate**: Agents must explicitly save a pitfall, verify a solution, or state "nothing surprised me" with a reason before advancing. Silent advancement is impossible.
 - **Architecture split**: Skill = brain (protocol in agent context). MCP = nervous system (state + enforcement). Portable across any agent framework via MCP.
 - **Anthropic alignment**: Mapped the entire EvoIntel stack against Anthropic's 2026 Agentic Coding Trends Report. Every problem they identified has a corresponding EvoIntel solution.
+
+### v3 → v3.2 Changes
+
+Real-world dogfooding (25-task greenfield project run) revealed that ~40% of the protocol was dead weight for small tasks and new projects. The feedback drove six targeted changes:
+
+- **Task complexity tiers**: Plans mark tasks as `size: small/medium/large`. Small tasks skip FDMC, Seraph, and knowledge gates. Large tasks enforce Seraph even when plan has `grade: false`. Medium tasks (default) behave as before. This eliminates 36 wasted MCP calls for tail-end tasks.
+- **Greenfield mode**: `mode: greenfield` in plan frontmatter relaxes `sibling_read` requirement for all tasks — there are no siblings to read in a new project.
+- **Batch advance**: `morpheus_advance_batch` processes a JSON array of advances in one call. Cuts 80%+ protocol overhead for small task batches.
+- **Progress logging**: `morpheus_progress` records timestamped observations without advancing phases. Visible in `morpheus_status`.
+- **Merged FDMC**: Single post-code pass replaces the pre-flight + post-review dual pass. CODE requires only `sibling_read`. GRADE includes `fdmc_review`. One FDMC pass is sufficient — the pre-flight was a mental checklist, not a gate.
+- **Simplified knowledge gate**: Accepts boolean `"true"/"false"` alongside sentinel IDs and `"nothing_surprised"`. Reduces friction while preserving the intentional pause.
+
+### v3.2 Gate Quality (March 21, 2026)
+
+A 10-task dogfood run on a new project (Zado) revealed that gates were enforcing *form* over *substance*. Three targeted fixes:
+
+- **Gate rejection format examples**: Rejections now include the expected JSON schema (e.g., `Expected: {"sibling_read": "src/core/parser.py"}`). Previously agents burned multiple attempts guessing the format from key names alone.
+- **Knowledge reason requirement**: `"nothing_surprised"` and `"false"` now require a `knowledge_reason` field — one sentence explaining *why* nothing was learned. Sentinel IDs and `"true"` pass without a reason. This closes the rubber-stamp loophole (8/10 tasks passed with bare `"nothing_surprised"` in the dogfood run).
+- **`skip_reason` parameter**: `morpheus_advance` accepts an optional `skip_reason` that fills missing evidence keys with `"skipped: {reason}"`. Replaces agents faking `"grade_disabled"` when Seraph can't grade (e.g., greenfield plans with no diff). The real reason is now auditable in phase evidence.
+
+**Key insight**: Gates that check for *form* (did you submit a string?) train agents to game the system. Gates that check for *substance* (did you articulate why?) train agents to think. Same lesson as code coverage metrics — the metric is only useful if gaming it is harder than doing the work.
+
+**Key insight**: Morpheus wasn't overbuilt — it was under-adaptive. The protocol assumed uniform task complexity and a mature codebase. Adding tiers, batch ops, and greenfield mode closed the gap without sacrificing the discipline that makes the protocol worth using.
 
 ---
 
@@ -520,6 +565,18 @@ AI agents cannot authenticate to platforms they need to act on. Scoped tokens, e
 
 Complex features would benefit from a spec document (data model, API surface, integration points) before task decomposition. Currently the plan goes directly from description to tasks.
 
+### Gap G: Adversarial Resilience and Memory Provenance
+
+EvoIntel was designed for quality verification under cooperative conditions — the agent is trying to do good work, and the suite helps it do better work. It was not designed for adversarial conditions — where a nefarious actor actively tries to compromise the agent through prompt injection, tool poisoning, or memory manipulation.
+
+This matters because Sentinel's persistent memory (`solution_save` / `solution_search`) is simultaneously the compound learning mechanism AND a potential poisoning surface. If an agent is manipulated (via indirect prompt injection through web content, malicious MCP tool descriptions, or crafted repository content) into saving adversarial "knowledge" to Sentinel, that poison persists across sessions and compounds — exactly as designed, but serving the attacker. The same property that makes EvoIntel valuable for quality makes it vulnerable to adversarial exploitation.
+
+Current industry guidance (OWASP AI Agent Security, OpenAI agent safety, Anthropic Claude Code security) converges on boundary enforcement: least privilege, source-sink analysis, approval gates, memory sanitization, and sandboxing. EvoIntel's architecture (local-first MCP sidecars, evidence gates, compound verification) is structurally compatible with these controls but does not yet implement them.
+
+**What would be needed:** (1) Provenance and trust-level tagging on all Sentinel entries — source, timestamp, trust tier, quarantine flag. (2) Memory sanitization — scan entries for instruction-like patterns before persisting. (3) Pre-execution tool boundary enforcement — a policy layer that validates tool calls before they execute, not after. (4) Taint tracking on content from untrusted sources (web, email, external MCP servers). (5) Behavioral anomaly detection at the agent action level, not just periodic runtime snapshots.
+
+This gap is noted here as an honest architectural limitation. EvoIntel provides sensors, memory, and verification. An adversarial safety layer would require a policy/control plane on top of these primitives — a distinct engineering effort that builds on the existing architecture rather than replacing it.
+
 ---
 
 ## Part X: Roadmap
@@ -532,10 +589,12 @@ Complex features would benefit from a spec document (data model, API surface, in
 4. ~~Wire `/morpheus` skill to Morpheus MCP~~ — skill now calls `morpheus_init`, `morpheus_advance` (all 6 gates), and `morpheus_close`. No more markdown-only state.
 5. ~~Sequential phase ordering enforcement~~ — `_PHASE_ORDER` wired into `advance()`. Server rejects out-of-order advances. Phases cannot be skipped.
 6. ~~Seraph security dimension~~ — Bandit + Semgrep + detect-secrets as 6th grading dimension (15% weight, CWE-tier weighted). 187 tests.
+7. ~~Morpheus adaptive protocol~~ — Task size tiers (small/medium/large), greenfield mode, batch advance, progress logging, merged FDMC single-pass, simplified knowledge gate. 134 tests. 16 commits. 20 tasks completed autonomously via the protocol itself.
+8. ~~Morpheus gate quality~~ — Rejection format examples, knowledge_reason requirement, skip_reason parameter. Dogfooded on Zado (zadofi.ai). 7 tasks, 6 commits.
 
 ### Now: Validation + Polish (Q1-Q2 2026)
 
-1. Test Morpheus enforcement on 3+ real projects
+1. ~~Test Morpheus enforcement on real projects~~ — ran 25-task greenfield + 20-task self-improvement via the protocol. Dogfooding feedback drove v0.2.0 adaptive protocol.
 2. Initialize Sentinel on all active projects (`sentinel init`)
 3. Enable full Seraph grading (with mutations) and calibrate grade thresholds
 4. Add `/review` subagent for separate-context FDMC critique
