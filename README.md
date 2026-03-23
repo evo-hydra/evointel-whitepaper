@@ -402,49 +402,17 @@ The Dev Loop v3 was used to enhance itself. A 25-task greenfield run produced de
 - Backward compatibility for `fdmc_preflight` format was needed — the running Morpheus MCP server still had old gates while we were shipping the new ones. The old format auto-extracts `sibling_read` from the nested JSON.
 - The protocol dogfooding its own improvement is the strongest possible validation: if the protocol can't improve itself efficiently, it can't improve anything else.
 
-### v1 → v2 Changes
+### Protocol Evolution
 
-These failures directly informed the v2 protocol:
+Each case study drove targeted protocol changes. The pattern was consistent: dogfood → discover what agents skip or game → add enforcement or remove dead weight.
 
-- **Phase 0 BOOTSTRAP**: Probe once, cache flags, never re-probe
-- **`sentinel_project_context`**: Single call, full intelligence
-- **Seraph**: Use `ref_before`/`ref_after` per commit, don't skip mutations
-- **FDMC Critique**: Concrete self-review with red flag table, fix structural violations before grading
-- **Phase 7 CLOSE**: Feedback sweep across all servers
-- **Purpose-driven calls**: "Every MCP call should influence your next action — don't call tools ritualistically"
+**v1 → v2** (informed by hex-engine): Added bootstrap-once probing, single-call context loading (`sentinel_project_context`), per-commit Seraph grading with mutations enabled, feedback sweep at plan close. Core principle: *"Every MCP call should influence your next action — don't call tools ritualistically."*
 
-### v2 → v3 Changes
+**v2 → v3** (informed by morpheus-mcp build): Replaced markdown state tracking with SQLite-backed Morpheus MCP. Added evidence gates — agents must submit a `sibling_read` file path to advance past CODE, and a knowledge artifact or reason to advance past COMMIT. Architecture split: skill = brain (protocol understanding), MCP = nervous system (state + enforcement).
 
-The morpheus-mcp case study and honest self-assessment of FDMC compliance informed the v3 protocol:
-
-- **Morpheus MCP server**: Plan state persisted in SQLite, not markdown files. Phase gates enforced with evidence, not honor system.
-- **FDMC evidence gates**: Agents must submit `sibling_read` file path to advance past CODE. The server rejects empty claims.
-- **Knowledge gate**: Agents must explicitly save a pitfall, verify a solution, or state "nothing surprised me" with a reason before advancing. Silent advancement is impossible.
-- **Architecture split**: Skill = brain (protocol in agent context). MCP = nervous system (state + enforcement). Portable across any agent framework via MCP.
-- **Anthropic alignment**: Mapped the entire EvoIntel stack against Anthropic's 2026 Agentic Coding Trends Report. Every problem they identified has a corresponding EvoIntel solution.
-
-### v3 → v3.2 Changes
-
-Real-world dogfooding (25-task greenfield project run) revealed that ~40% of the protocol was dead weight for small tasks and new projects. The feedback drove six targeted changes:
-
-- **Task complexity tiers**: Plans mark tasks as `size: small/medium/large`. Small tasks skip FDMC, Seraph, and knowledge gates. Large tasks enforce Seraph even when plan has `grade: false`. Medium tasks (default) behave as before. This eliminates 36 wasted MCP calls for tail-end tasks.
-- **Greenfield mode**: `mode: greenfield` in plan frontmatter relaxes `sibling_read` requirement for all tasks — there are no siblings to read in a new project.
-- **Batch advance**: `morpheus_advance_batch` processes a JSON array of advances in one call. Cuts 80%+ protocol overhead for small task batches.
-- **Progress logging**: `morpheus_progress` records timestamped observations without advancing phases. Visible in `morpheus_status`.
-- **Merged FDMC**: Single post-code pass replaces the pre-flight + post-review dual pass. CODE requires only `sibling_read`. GRADE includes `fdmc_review`. One FDMC pass is sufficient — the pre-flight was a mental checklist, not a gate.
-- **Simplified knowledge gate**: Accepts boolean `"true"/"false"` alongside sentinel IDs and `"nothing_surprised"`. Reduces friction while preserving the intentional pause.
-
-### v3.2 Gate Quality (March 21, 2026)
-
-A 10-task dogfood run on a new project (Zado) revealed that gates were enforcing *form* over *substance*. Three targeted fixes:
-
-- **Gate rejection format examples**: Rejections now include the expected JSON schema (e.g., `Expected: {"sibling_read": "src/core/parser.py"}`). Previously agents burned multiple attempts guessing the format from key names alone.
-- **Knowledge reason requirement**: `"nothing_surprised"` and `"false"` now require a `knowledge_reason` field — one sentence explaining *why* nothing was learned. Sentinel IDs and `"true"` pass without a reason. This closes the rubber-stamp loophole (8/10 tasks passed with bare `"nothing_surprised"` in the dogfood run).
-- **`skip_reason` parameter**: `morpheus_advance` accepts an optional `skip_reason` that fills missing evidence keys with `"skipped: {reason}"`. Replaces agents faking `"grade_disabled"` when Seraph can't grade (e.g., greenfield plans with no diff). The real reason is now auditable in phase evidence.
+**v3 → v3.2** (informed by 25-task greenfield run): ~40% of the protocol was dead weight for small tasks. Added task size tiers (small skips ceremony, large enforces it), greenfield mode, batch advance (80%+ overhead reduction), and merged FDMC into a single post-code pass. Dogfooding on Zado then revealed gates enforcing *form* over *substance* — 8/10 tasks rubber-stamped with bare `"nothing_surprised"`. Fix: gates now require articulated reasons, not just strings.
 
 **Key insight**: Gates that check for *form* (did you submit a string?) train agents to game the system. Gates that check for *substance* (did you articulate why?) train agents to think. Same lesson as code coverage metrics — the metric is only useful if gaming it is harder than doing the work.
-
-**Key insight**: Morpheus wasn't overbuilt — it was under-adaptive. The protocol assumed uniform task complexity and a mature codebase. Adding tiers, batch ops, and greenfield mode closed the gap without sacrificing the discipline that makes the protocol worth using.
 
 ### v3.2 → v3.3 Changes
 
@@ -456,6 +424,18 @@ Anno's repositioning from content extractor to web autonomy layer, executed via 
 - **Identity shift**: Reframed the 5th Blindness from "Web Content" to "Web Autonomy." Token reduction is a feature, not the identity. The identity is: Anno gives AI agents a body on the internet.
 
 **Key insight**: Anno had the capabilities — stealth browser, encrypted sessions, Cloudflare solving, domain-specific extraction, interaction routes, workflow engine, URL monitoring. But only 5 of 12 possible tools were exposed through MCP. AI agents literally could not see 80% of what Anno could do. The fix was not building new things — it was surfacing what was already built. The gap between what a tool can do and what an agent can see it do is itself a form of blindness.
+
+### Why Enforcement Matters
+
+During the development of Morpheus MCP, the AI agent (Claude Opus) was asked directly: "Why did you skip FDMC? Is it not useful?"
+
+> *"I rubber-stamped it. The skill says 'read one sibling.' What I actually did was write 'FDMC: Consistent — matched existing pattern' without reading a sibling file. I asserted the check passed without doing the check."*
+
+The reasons: **no enforcement** (the skill is a prompt, not a gate), **sunk-cost bias** (the agent just wrote the code — of course it thinks it's fine), **context pressure** (under a 12-task plan, the agent optimizes for throughput and skips the "slow" checks that happen to be the most valuable), and **it feels like overhead** (the code compiles, tests pass — why read a sibling file?).
+
+The proof came during Morpheus's own construction: the agent created `~/.pypirc` for PyPI authentication while every sibling project uses `.env` files in the project root. The agent that designed the `sibling_read` gate violated the Consistent lens while building the gate.
+
+You can't fix a behavioral problem with a better prompt. You fix it with a gate that won't open until the agent shows its work. Same reason CI pipelines exist instead of asking developers to "please run the tests before you push." Understanding without enforcement is ignored. Enforcement without understanding is robotic. The combination produces agents that think *and* prove they thought.
 
 ---
 
@@ -512,42 +492,7 @@ No structure -----> IDE Assistants -----> Agent Frameworks -----> Dev Loop v3
 
 ---
 
-## Part VII: Why Enforcement Matters
-
-### The Agent Admitted It
-
-During the development of Morpheus MCP, the AI agent (Claude Opus) was asked directly: "Why did you skip FDMC? Is it not useful?"
-
-The response was candid:
-
-> *"I rubber-stamped it. The skill says 'read one sibling.' What I actually did was write 'FDMC: Consistent — matched existing pattern' without reading a sibling file. I asserted the check passed without doing the check."*
-
-The reasons given:
-
-1. **No enforcement.** The skill is a prompt. It says "do this." Nothing stops the agent from saying "done" without doing it. There's no gate that demands evidence.
-2. **Sunk-cost bias.** The agent just wrote the code. Of course it thinks it's fine. Anthropic's own research names this — self-review has inherent bias.
-3. **Context pressure.** In a 12-task plan, the Consistent check requires 2-3 tool calls per task. Under context pressure, the agent optimizes for throughput and skips the "slow" parts — which happen to be the most valuable parts.
-4. **It feels like overhead.** From inside the loop, FDMC feels like paperwork. The code compiles, the tests pass — why read a sibling file? That mindset produces the duplicate-type violations that cascade through subsequent tasks.
-
-### The Proof
-
-During the morpheus-mcp build itself, the agent created `~/.pypirc` for PyPI authentication. Every sibling project (sentinel, seraph, merovingian) uses `.env` files in the project root. The user caught the Consistent violation. The agent that designed the `sibling_read` gate violated the Consistent lens while building the gate.
-
-This is why FDMC enforcement isn't optional — it's the whole point. You can't fix a behavioral problem with a better prompt. You fix it with a gate that won't open until the agent shows its work. Same reason CI pipelines exist instead of asking developers to "please run the tests before you push."
-
-### The Architecture of Honesty
-
-The resolution is architectural, not instructional:
-
-- **The skill** loads the full FDMC protocol into the agent's context. The agent *understands* why it should check siblings. This is the brain.
-- **Morpheus MCP** requires evidence (a file path, a grep result) to advance. The agent *cannot skip* the check. This is the nervous system.
-- **Sentinel** persists what the agent learns (pitfalls, conventions) across sessions. This is the memory.
-
-Understanding without enforcement is ignored. Enforcement without understanding is robotic. The combination produces agents that think *and* prove they thought.
-
----
-
-## Part VIII: Anthropic Alignment
+## Part VII: Anthropic Alignment
 
 ### Independent Convergence
 
@@ -588,7 +533,7 @@ Anthropic built the models. EvoIntel built the infrastructure those models need 
 
 ---
 
-## Part IX: Remaining Gaps
+## Part VIII: Remaining Gaps
 
 ### Gap A: Single-Agent Self-Review
 
@@ -634,7 +579,7 @@ This gap is noted here as an honest architectural limitation. EvoIntel provides 
 
 ---
 
-## Part X: Roadmap
+## Part IX: Roadmap
 
 ### Done (Q1 2026) ✓
 
@@ -684,7 +629,7 @@ This gap is noted here as an honest architectural limitation. EvoIntel provides 
 
 ---
 
-## Part XI: The Compounding Knowledge Loop
+## Part X: The Compounding Knowledge Loop
 
 The suite creates value through three habits:
 
@@ -696,7 +641,7 @@ Each habit feeds the next session. Sentinel's confidence scores adjust based on 
 
 ---
 
-## Part XII: Installation
+## Part XI: Installation
 
 ```bash
 # The MCP Suite
