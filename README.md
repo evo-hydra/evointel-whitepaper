@@ -2,7 +2,7 @@
 
 **The Five Blindnesses Framework, the Dev Loop Protocol, and the MCP Suite**
 
-Version 3.2 | March 19, 2026 | Evolving Intelligence AI
+Version 3.3 | March 23, 2026 | Evolving Intelligence AI
 
 **Author:** Nicholas Smith — AI Innovator, ServiceNow Developer, Software Designer. Founder & CEO of Evolving Intelligence AI. Built the EvoIntel MCP suite as open-source infrastructure for verified AI-assisted development.
 
@@ -16,7 +16,7 @@ AI coding agents are not limited by intelligence. They are limited by blindness 
 
 EvoIntel addresses this with four layers:
 
-1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 43 MCP interfaces. 950+ tests. SQLite + WAL + FTS5. No cloud. No Docker.
+1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 50 MCP interfaces. 950+ tests. SQLite + WAL + FTS5. No cloud. No Docker.
 
 2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a single post-code review pass with **enforced evidence gates** — agents must prove they checked, not just claim they did.
 
@@ -42,7 +42,7 @@ AI coding agents face five structural gaps that no model improvement will fix:
 
 **4. Code Quality Beyond "Tests Pass"** — AI-generated tests can achieve 100% line coverage while scoring only 4% on mutation testing. They assert that code runs without errors, not that it produces correct results. "All tests pass" is a necessary condition, not a sufficient one.
 
-**5. Web Content** — AI agents fetch documentation as raw HTML. ~93% of tokens are navigation, ads, scripts, and chrome. You pay the full cost in context window consumption and degraded attention. The HTML needs to be removed, not better understood.
+**5. Web Autonomy** — AI agents cannot act on the web. They can fetch URLs, but they cannot navigate, authenticate, interact with pages, or comprehend what they're looking at. Raw HTML wastes ~93% of tokens on noise. And even when agents get clean content, they lack the hands to click, fill forms, solve Cloudflare challenges, or maintain browser sessions across multi-step workflows. The web is the largest information surface in the world, and AI agents are locked out of it.
 
 ### The Numbers
 
@@ -91,10 +91,10 @@ The AI doesn't get smarter. It gets informed.
 | Runtime behavior | [**Niobe**](https://github.com/evo-hydra/niobe) | 0.2.0 | 14 | 8 | Process metrics, log patterns, error rates, anomalies |
 | Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.0 | 187 | 10 | API contracts, consumer relationships, breaking changes |
 | Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.1 | 187 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security |
-| Web content + Auth | [**Anno**](https://github.com/evo-hydra/anno) | 1.0.1 | 102 | 5 | Clean text from any URL via 5-extractor ensemble; authenticated session management with Cloudflare bypass |
+| Web autonomy | [**Anno**](https://github.com/evo-hydra/anno) | 2.0.0 | 102 | 12 | Navigate, authenticate, interact, observe, extract, and monitor the web through a stealth browser with persistent sessions |
 | Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.2.0 | 134 | 6 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging |
 
-**Total: 6 servers. 43 MCP interfaces. 950+ tests. Open source.**
+**Total: 6 servers. 50 MCP interfaces. 950+ tests. Open source.**
 
 ### Sentinel: Institutional Memory
 
@@ -114,19 +114,46 @@ Scans OpenAPI specs and Pydantic models. Direction-aware breaking change detecti
 
 8-step pipeline: diff → baseline (flaky detection) → mutation testing (mutmut) → static analysis (ruff + mypy) → security scanning (bandit + semgrep + detect-secrets) → Sentinel risk signals → scoring → persistence. Six-dimension grade: mutation score (25%), static cleanliness (20%), test baseline (10%), Sentinel risk (20%), co-change coverage (10%), security (15%, CWE-tier weighted).
 
-### Anno: Clean Signal from Web Noise
+### Anno: Web Autonomy for AI Agents
 
-Five extractors in parallel (Readability, DOM heuristic, Trafilatura, domain-specific, Ollama LLM). Confidence scoring selects best result. Average 92.7% token reduction. 14 web pages in the space raw HTML uses for one.
+Anno is the only tool in the Nebuchadnezzar suite that acts on the web. Every other tool thinks — Sentinel remembers, Seraph grades, Morpheus enforces. Anno gives AI agents a body on the internet.
 
-**Authenticated session management (v1.0.1)**: Anno now serves as the authentication gateway for the Nebuchadnezzar ecosystem. The `anno_session_auth` MCP tool navigates to any URL with a real Playwright browser (stealth mode, anti-detection fingerprinting), injects seed cookies, solves Cloudflare challenges, and returns the full cookie jar — including `cf_clearance`. This is domain-agnostic: the same tool that authenticates with claude.ai for Dispatch relay also works with eBay, Amazon, or any Cloudflare-protected API.
+**Repositioned in v2.0.0**: Anno was originally framed as a content extractor ("clean text from web noise"). That undersold it. Token reduction is a feature. What Anno actually does is give AI agents the ability to navigate, authenticate, interact with, observe, and extract from the web — through a stealth browser with persistent sessions. The landscape of AI browser tools (Browser Use, Stagehand, Playwright MCP, Firecrawl, Browserbase) splits into three lanes: browser automation ("act on the web"), browser infrastructure ("rent a browser"), and content extraction ("fetch and clean"). Anno occupies a fourth lane that nobody else fills: **web comprehension** — the intelligence layer that turns raw DOM chaos into structured, confidence-scored, provenance-tracked, token-optimized content that an AI can trust.
 
-The auth layer builds on three existing services:
+**12 MCP tools** (up from 5 in v1.0.1):
 
-- **AuthManager** — encrypted credential profiles (AES-256-GCM), auto-login workflows with ordered steps (fill, click, type, wait), session refresh on expiry
+| Tool | What It Does |
+|------|-------------|
+| `anno_fetch` | Navigate + extract structured content with 80%+ token reduction |
+| `anno_batch_fetch` | Parallel multi-URL extraction (up to 10) |
+| `anno_crawl` | Site-wide discovery + extraction with robots.txt compliance |
+| `anno_session_auth` | Cloudflare challenge solving + authenticated cookie extraction |
+| `anno_interact` | Click, fill, scroll, type — act on web pages through a stealth browser |
+| `anno_screenshot` | Visual page capture (MCP image content type) for AI reasoning |
+| `anno_page_state` | Interactive element inventory — "what can I click/fill here?" |
+| `anno_observe` | Page comprehension — "what am I looking at?" (page type, patterns, navigation) |
+| `anno_workflow` | Multi-step browser automation with conditionals, loops, variables |
+| `anno_watch` | URL change monitoring with configurable thresholds |
+| `anno_search` | Semantic search over previously extracted content |
+| `anno_health` | Server health and browser availability check |
+
+**Persistent session threading**: All interaction tools accept `sessionId`/`createSession` parameters. An agent can authenticate once, then navigate, interact, screenshot, and extract across multiple tool calls on the same browser context:
+
+```
+session_auth(createSession: true) → interact(sessionId) → screenshot(sessionId) → fetch
+```
+
+**Page comprehension (`anno_observe`)**: The tool nobody else has. Returns structured observation of any page: page type classification (login, search-results, article, product, checkout, form, dashboard), interactive element summary, navigation options, and detected patterns (captcha, paywall, cookie consent, auth walls, popups). Uses signal-based weighted classification — extensible without hardcoding rules.
+
+**Content intelligence**: Five extractors in parallel (Readability, DOM heuristic, Trafilatura, domain-specific, Ollama LLM). Confidence scoring selects best result. SHA-256 provenance tracking. Content-addressed caching. Domain policy engine (per-domain YAML). Average 92.7% token reduction — 14 web pages in the space raw HTML uses for one.
+
+**Authentication layer**: `anno_session_auth` navigates to any URL with a real Playwright browser (stealth mode, anti-detection fingerprinting), injects seed cookies, solves Cloudflare challenges, and returns the full cookie jar including `cf_clearance`. Three backing services:
+
+- **AuthManager** — encrypted credential profiles (AES-256-GCM), auto-login workflows with ordered steps
 - **SessionManager** — UUID-based browser sessions with TTL, LRU eviction, encrypted cookie persistence to disk
-- **PersistentSessionManager** — long-running sessions (hours/days) with natural warming, CAPTCHA detection, and session rotation
+- **PersistentSessionManager** — long-running sessions with natural warming, CAPTCHA detection, and session rotation
 
-Domain-specific extractors (eBay sold listings, Amazon products, Walmart pricing) leverage these sessions for authenticated data access. The session auth endpoint degrades gracefully — if Playwright is unavailable, it returns seed cookies unchanged rather than failing.
+Domain-specific extractors (eBay sold listings, Amazon products, Walmart pricing) leverage these sessions for authenticated data access. All endpoints degrade gracefully when Playwright is unavailable.
 
 ### Morpheus: Protocol Enforcement
 
@@ -163,7 +190,7 @@ The Dev Loop skill (`/morpheus`) remains the brain — it loads the full protoco
 
 ### The Four Lenses
 
-FDMC encodes the judgment that models lack. Applied as a single post-code review pass (v3.2 merged the pre-flight and post-review into one):
+FDMC encodes the judgment that models lack. Applied as a single post-code review pass (v3.2+ merged the pre-flight and post-review into one):
 
 - **Future-Proof** — Will this break when requirements change? Avoid tight coupling to current assumptions. Am I baking in assumptions about callers, data shapes, or execution order?
 
@@ -419,6 +446,17 @@ A 10-task dogfood run on a new project (Zado) revealed that gates were enforcing
 
 **Key insight**: Morpheus wasn't overbuilt — it was under-adaptive. The protocol assumed uniform task complexity and a mature codebase. Adding tiers, batch ops, and greenfield mode closed the gap without sacrificing the discipline that makes the protocol worth using.
 
+### v3.2 → v3.3 Changes
+
+Anno's repositioning from content extractor to web autonomy layer, executed via the Morpheus dev loop (10/10 tasks, 8 commits):
+
+- **Anno v2.0.0**: 7 new MCP tools expose capabilities that were previously hidden behind REST-only routes. AI agents can now interact with pages (`anno_interact`), see pages (`anno_screenshot`), discover interactive elements (`anno_page_state`), comprehend pages (`anno_observe`), execute multi-step workflows (`anno_workflow`), monitor URLs (`anno_watch`), and search extracted content (`anno_search`).
+- **Persistent session threading**: All interaction tools accept `sessionId`/`createSession` for multi-step authenticated browsing across tool calls. `session_auth → interact → screenshot → fetch` on a single browser context.
+- **Page comprehension (`anno_observe`)**: New page-observer service classifies page types (login, search-results, article, product, checkout, etc.), inventories interactive elements, detects patterns (captcha, paywall, cookie consent), and summarizes content — in one call.
+- **Identity shift**: Reframed the 5th Blindness from "Web Content" to "Web Autonomy." Token reduction is a feature, not the identity. The identity is: Anno gives AI agents a body on the internet.
+
+**Key insight**: Anno had the capabilities — stealth browser, encrypted sessions, Cloudflare solving, domain-specific extraction, interaction routes, workflow engine, URL monitoring. But only 5 of 12 possible tools were exposed through MCP. AI agents literally could not see 80% of what Anno could do. The fix was not building new things — it was surfacing what was already built. The gap between what a tool can do and what an agent can see it do is itself a form of blindness.
+
 ---
 
 ## Part VI: Competitive Landscape
@@ -455,6 +493,7 @@ No structure -----> IDE Assistants -----> Agent Frameworks -----> Dev Loop v3
 3. **FDMC self-critique with concrete red flags** — More structured than any single-agent self-review
 4. **Feedback loop closure** — Agents learn across sessions via `*_feedback` tools
 5. **Knowledge persistence** — Error fingerprints linked to fixes, searchable across sessions
+6. **Web comprehension layer** — Anno is the only MCP tool that combines page classification, interactive element discovery, pattern detection, confidence-scored extraction, and persistent browser sessions into a single coherent surface. Browser Use gives agents hands. Anno gives agents understanding.
 
 ### What Others Do Better
 
@@ -571,9 +610,9 @@ Seraph now includes security as a 6th grading dimension (15% weight). Three engi
 
 Contract drift detection (spec vs observed runtime) and cross-repo co-change prediction are not yet implemented.
 
-### ~~Gap E~~ (Partially Resolved): Agent Authentication
+### ~~Gap E~~ (Largely Resolved): Agent Web Autonomy
 
-AI agents cannot authenticate to platforms they need to act on. Anno now provides the first layer: `anno_session_auth` uses Playwright with stealth to navigate Cloudflare-protected sites, solve challenges, and return authenticated cookies. AuthManager stores encrypted credential profiles with auto-login workflows. This resolves the browser-auth surface — agents can now authenticate to any web platform that uses cookie-based sessions.
+AI agents could not authenticate to or interact with web platforms. Anno v2.0.0 resolves the browser surface comprehensively: `anno_session_auth` solves Cloudflare challenges, `anno_interact` clicks/fills/scrolls, `anno_observe` classifies pages and detects patterns, `anno_screenshot` provides visual context, and persistent `sessionId` threading allows multi-step authenticated workflows across tool calls. AuthManager stores encrypted credential profiles with auto-login workflows. Agents can now navigate to a login page, observe it, fill credentials, submit, verify success, and extract content — all through MCP tools on a single persistent browser session.
 
 **What remains**: Scoped API tokens (not browser cookies), auditable access logs for agent identity, and a credential vault with role-based access control. The current implementation is single-user — it uses the operator's browser session, not a scoped agent identity. A full solution would separate agent credentials from operator credentials and provide audit trails for which agent accessed which platform with what permissions.
 
@@ -607,6 +646,7 @@ This gap is noted here as an honest architectural limitation. EvoIntel provides 
 6. ~~Seraph security dimension~~ — Bandit + Semgrep + detect-secrets as 6th grading dimension (15% weight, CWE-tier weighted). 187 tests.
 7. ~~Morpheus adaptive protocol~~ — Task size tiers (small/medium/large), greenfield mode, batch advance, progress logging, merged FDMC single-pass, simplified knowledge gate. 134 tests. 16 commits. 20 tasks completed autonomously via the protocol itself.
 8. ~~Morpheus gate quality~~ — Rejection format examples, knowledge_reason requirement, skip_reason parameter. Dogfooded on Zado (zadofi.ai). 7 tasks, 6 commits.
+9. ~~Anno web autonomy (v2.0.0)~~ — Repositioned from content extractor to web autonomy layer. 7 new MCP tools (interact, screenshot, page-state, observe, workflow, watch, search). Persistent sessionId threading across all interaction tools. New page-observer service for page comprehension. Rebranded all tool descriptions. 12 MCP tools total. 2,868 tests. 8 commits. Executed via Morpheus dev loop (10/10 tasks).
 
 ### Now: Validation + Polish (Q1-Q2 2026)
 
@@ -665,7 +705,7 @@ pipx install niobe              # Runtime observation
 pipx install merovingian        # Dependency intelligence
 pipx install seraph-ai          # Verification intelligence
 pipx install morpheus-mcp       # Protocol enforcement
-npm install -g @evointel/anno   # Web content extraction
+npm install -g @evointel/anno   # Web autonomy for AI agents
 
 # The Dev Loop (Claude Code plugin)
 # Install from Claude Code plugin marketplace or:
