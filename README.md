@@ -16,7 +16,7 @@ AI coding agents are not limited by intelligence. They are limited by blindness 
 
 EvoIntel addresses this with four layers:
 
-1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 42 MCP interfaces. 940+ tests. SQLite + WAL + FTS5. No cloud. No Docker.
+1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 43 MCP interfaces. 950+ tests. SQLite + WAL + FTS5. No cloud. No Docker.
 
 2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a single post-code review pass with **enforced evidence gates** — agents must prove they checked, not just claim they did.
 
@@ -91,10 +91,10 @@ The AI doesn't get smarter. It gets informed.
 | Runtime behavior | [**Niobe**](https://github.com/evo-hydra/niobe) | 0.2.0 | 14 | 8 | Process metrics, log patterns, error rates, anomalies |
 | Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.0 | 187 | 10 | API contracts, consumer relationships, breaking changes |
 | Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.1 | 187 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security |
-| Web content | [**Anno**](https://github.com/evo-hydra/anno) | 1.0.1 | 101 | 4 | Clean text from any URL via 5-extractor ensemble |
+| Web content + Auth | [**Anno**](https://github.com/evo-hydra/anno) | 1.0.1 | 102 | 5 | Clean text from any URL via 5-extractor ensemble; authenticated session management with Cloudflare bypass |
 | Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.2.0 | 134 | 6 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging |
 
-**Total: 6 servers. 42 MCP interfaces. 950+ tests. Open source.**
+**Total: 6 servers. 43 MCP interfaces. 950+ tests. Open source.**
 
 ### Sentinel: Institutional Memory
 
@@ -117,6 +117,16 @@ Scans OpenAPI specs and Pydantic models. Direction-aware breaking change detecti
 ### Anno: Clean Signal from Web Noise
 
 Five extractors in parallel (Readability, DOM heuristic, Trafilatura, domain-specific, Ollama LLM). Confidence scoring selects best result. Average 92.7% token reduction. 14 web pages in the space raw HTML uses for one.
+
+**Authenticated session management (v1.0.1)**: Anno now serves as the authentication gateway for the Nebuchadnezzar ecosystem. The `anno_session_auth` MCP tool navigates to any URL with a real Playwright browser (stealth mode, anti-detection fingerprinting), injects seed cookies, solves Cloudflare challenges, and returns the full cookie jar — including `cf_clearance`. This is domain-agnostic: the same tool that authenticates with claude.ai for Dispatch relay also works with eBay, Amazon, or any Cloudflare-protected API.
+
+The auth layer builds on three existing services:
+
+- **AuthManager** — encrypted credential profiles (AES-256-GCM), auto-login workflows with ordered steps (fill, click, type, wait), session refresh on expiry
+- **SessionManager** — UUID-based browser sessions with TTL, LRU eviction, encrypted cookie persistence to disk
+- **PersistentSessionManager** — long-running sessions (hours/days) with natural warming, CAPTCHA detection, and session rotation
+
+Domain-specific extractors (eBay sold listings, Amazon products, Walmart pricing) leverage these sessions for authenticated data access. The session auth endpoint degrades gracefully — if Playwright is unavailable, it returns seed cookies unchanged rather than failing.
 
 ### Morpheus: Protocol Enforcement
 
@@ -285,20 +295,22 @@ The Dev Loop is the first autonomous development protocol that integrates projec
 
 No other tool or framework combines all of these capabilities. Each competitor excels in specific areas:
 
-| Capability | Aider | Cline | Kiro | Open SWE | Dev Loop |
-|-----------|-------|-------|------|----------|----------|
-| Lint-test-fix loop | **Yes** | **Yes** | Hooks | No | Yes |
-| Plan-first workflow | No | **Yes** | **Yes (specs)** | **Yes** | Yes |
-| Separate reviewer | No | No | No | **Yes** | No (Gap A) |
-| Audit trail | Commits | **Full** | No | Logs | Commits |
-| Pre-flight intelligence | No | No | No | No | **Yes (Sentinel)** |
-| Mutation testing gate | No | No | No | No | **Yes (Seraph)** |
-| Runtime observation | No | No | No | No | **Yes (Niobe)** |
-| Contract verification | No | No | No | No | **Yes (Merovingian)** |
-| Security scanning | No | No | No | No | **Yes (Seraph)** |
-| Enforced quality gates | No | No | No | No | **Yes (Morpheus)** |
-| Feedback loop closure | No | No | No | No | **Yes (*_feedback)** |
-| Knowledge persistence | No | Logs | No | No | **Yes (solution_save)** |
+| Capability | Aider | Cline | Kiro | Open SWE | Ruflo | Dev Loop |
+|-----------|-------|-------|------|----------|-------|----------|
+| Lint-test-fix loop | **Yes** | **Yes** | Hooks | No | No | Yes |
+| Plan-first workflow | No | **Yes** | **Yes (specs)** | **Yes** | **Yes** | Yes |
+| Separate reviewer | No | No | No | **Yes** | **Yes (swarm)** | No (Gap A) |
+| Audit trail | Commits | **Full** | No | Logs | Logs | Commits |
+| Pre-flight intelligence | No | No | No | No | No | **Yes (Sentinel)** |
+| Mutation testing gate | No | No | No | No | No | **Yes (Seraph)** |
+| Runtime observation | No | No | No | No | No | **Yes (Niobe)** |
+| Contract verification | No | No | No | No | No | **Yes (Merovingian)** |
+| Security scanning | No | No | No | No | No | **Yes (Seraph)** |
+| Enforced quality gates | No | No | No | No | No | **Yes (Morpheus)** |
+| Feedback loop closure | No | No | No | No | No | **Yes (*_feedback)** |
+| Knowledge persistence | No | Logs | No | No | **Yes (HNSW)** | **Yes (solution_save)** |
+| Multi-agent parallelism | No | No | No | **Yes** | **Yes (swarms)** | No (Gap A) |
+| Model routing / cost opt | No | No | No | No | **Yes** | No |
 
 ---
 
@@ -432,6 +444,8 @@ No structure -----> IDE Assistants -----> Agent Frameworks -----> Dev Loop v3
 
 **Open SWE (LangChain)** — Multi-agent with Planner + Reviewer. Closest to FDMC critique via separate reviewer. No project intelligence.
 
+**Ruflo (ruvnet)** — Claude-native multi-agent orchestration. 259 MCP tools, 60+ agent types, swarm topologies (mesh/hierarchical/ring/star), multi-model routing, HNSW vector memory. Broadest orchestration surface. No project intelligence, no mutation testing, no enforced evidence gates. Optimizes for parallelism and cost; EvoIntel optimizes for verification and intelligence. Complementary philosophies — Ruflo asks "how many agents can work at once?" while EvoIntel asks "how do we know the work is correct?"
+
 **Anthropic's own guidance** — Writer/Reviewer pattern (two separate sessions). Recommends hooks for deterministic quality gates. Emphasizes "give Claude a way to verify its own work."
 
 ### What We Do That Nobody Else Does
@@ -557,9 +571,11 @@ Seraph now includes security as a 6th grading dimension (15% weight). Three engi
 
 Contract drift detection (spec vs observed runtime) and cross-repo co-change prediction are not yet implemented.
 
-### Gap E: Agent Authentication
+### ~~Gap E~~ (Partially Resolved): Agent Authentication
 
-AI agents cannot authenticate to platforms they need to act on. Scoped tokens, encrypted vaults, auditable access logs for agent identity — none of this exists.
+AI agents cannot authenticate to platforms they need to act on. Anno now provides the first layer: `anno_session_auth` uses Playwright with stealth to navigate Cloudflare-protected sites, solve challenges, and return authenticated cookies. AuthManager stores encrypted credential profiles with auto-login workflows. This resolves the browser-auth surface — agents can now authenticate to any web platform that uses cookie-based sessions.
+
+**What remains**: Scoped API tokens (not browser cookies), auditable access logs for agent identity, and a credential vault with role-based access control. The current implementation is single-user — it uses the operator's browser session, not a scoped agent identity. A full solution would separate agent credentials from operator credentials and provide audit trails for which agent accessed which platform with what permissions.
 
 ### Gap F: Dev Loop Spec-First Layer
 
