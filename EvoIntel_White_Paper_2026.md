@@ -2,7 +2,7 @@
 
 **The Five Blindnesses Framework, the Dev Loop Protocol, and the MCP Suite**
 
-Version 3.5 | March 23, 2026 | Evolving Intelligence AI
+Version 3.6 | March 24, 2026 | Evolving Intelligence AI
 
 **Author:** Nicholas Smith — AI Innovator, ServiceNow Developer, Software Designer. Founder & CEO of Evolving Intelligence AI. Built the EvoIntel MCP suite as open-source infrastructure for verified AI-assisted development.
 
@@ -16,7 +16,7 @@ AI coding agents are not limited by intelligence. They are limited by blindness 
 
 EvoIntel addresses this with four layers:
 
-1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 52 MCP interfaces. 3,995 tests. SQLite + WAL + FTS5. No cloud. No Docker.
+1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 52 MCP interfaces. 3,968 tests. SQLite + WAL + FTS5. No cloud. No Docker.
 
 2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a single post-code review pass with **enforced evidence gates** — agents must prove they checked, not just claim they did.
 
@@ -88,15 +88,15 @@ The AI doesn't get smarter. It gets informed.
 | Blindness | Tool | Version | Tests | MCP Tools | What It Sees |
 |-----------|------|---------|-------|-----------|-------------|
 | Project history | [**Sentinel**](https://github.com/evo-hydra/sentinel) | 0.4.2 | 413 | 11 | Conventions, pitfalls, decisions, hot files, co-changes, solution memory |
-| Runtime behavior | [**Niobe**](https://github.com/evo-hydra/niobe) | 0.2.0 | 142 | 8 | Process metrics, log patterns, error rates, anomalies |
-| Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.0 | 191 | 10 | API contracts, consumer relationships, breaking changes |
-| Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.1 | 195 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security |
-| Web autonomy | [**Anno**](https://github.com/evo-hydra/anno) | 2.0.0 | 2,894 | 12 | Navigate, authenticate, interact, observe, extract, and monitor the web through a stealth browser with persistent sessions |
-| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.2.0 | 160 | 7 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging |
+| Runtime behavior | [**Niobe**](https://github.com/evo-hydra/niobe) | 0.2.1 | 142 | 8 | Process metrics, log patterns, error rates, anomalies |
+| Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.4 | 191 | 10 | API contracts, consumer relationships, breaking changes |
+| Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.1 | 193 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security |
+| Web autonomy | [**Anno**](https://github.com/evo-hydra/anno) | 2.0.0 | 2,868 | 12 | Navigate, authenticate, interact, observe, extract, and monitor the web through a stealth browser with persistent sessions |
+| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.2.0 | 161 | 7 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging |
 
-**Total: 6 servers. 52 MCP interfaces. 3,995 tests. Open source.**
+**Total: 6 servers. 52 MCP interfaces. 3,968 tests. Open source.**
 
-*Test coverage varies by tool maturity. Anno (2,894) dominates via comprehensive Vitest suites. Sentinel (413), Seraph (195), Merovingian (191), and Morpheus (160) are well-tested Python projects. Niobe (142) has grown beyond early-stage but remains the least exercised sidecar in dogfood runs.*
+*Test coverage varies by tool maturity. Anno (2,868) dominates via comprehensive Vitest suites. Sentinel (413), Seraph (193), Merovingian (191), and Morpheus (161) are well-tested Python projects. Niobe (142) has grown beyond early-stage but remains the least exercised sidecar in dogfood runs.*
 
 ### Sentinel: Institutional Memory
 
