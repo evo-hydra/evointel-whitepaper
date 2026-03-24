@@ -2,7 +2,7 @@
 
 **The Five Blindnesses Framework, the Dev Loop Protocol, and the MCP Suite**
 
-Version 3.6 | March 24, 2026 | Evolving Intelligence AI
+Version 3.9 | March 24, 2026 | Evolving Intelligence AI
 
 **Author:** Nicholas Smith — AI Innovator, ServiceNow Developer, Software Designer. Founder & CEO of Evolving Intelligence AI. Built the EvoIntel MCP suite as open-source infrastructure for verified AI-assisted development.
 
@@ -16,13 +16,15 @@ AI coding agents are not limited by intelligence. They are limited by blindness 
 
 EvoIntel addresses this with four layers:
 
-1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 52 MCP interfaces. 3,968 tests. SQLite + WAL + FTS5. No cloud. No Docker.
+1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 54 MCP interfaces. 4,054 tests. SQLite + WAL + FTS5. No cloud. No Docker.
 
 2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a single post-code review pass with **enforced evidence gates** — agents must prove they checked, not just claim they did.
 
 3. **The Dev Loop** — An autonomous development protocol that orchestrates the suite into a coherent cycle: bootstrap MCP servers once, then for each task: check intelligence, code with FDMC, test, **independent review** via `/review` subagent, grade with mutation testing, commit with knowledge persistence, advance. Now **adaptive** — adjusts gate strictness by task size and project maturity. Closes the feedback loop at end of plan.
 
-4. **Morpheus** — An MCP-based orchestration server that tracks plan state with enforced phase gates. The Dev Loop skill is the brain (protocol in the agent's context). Morpheus is the nervous system (state persistence + gate enforcement). Now with **task size tiers** (small/medium/large), **greenfield mode**, **batch advance**, and **progress logging**. Agents must submit evidence to advance — the server rejects empty claims.
+4. **Morpheus** — An MCP-based orchestration server that tracks plan state with enforced phase gates. The Dev Loop skill is the brain (protocol in the agent's context). Morpheus is the nervous system (state persistence + gate enforcement). Now with **task size tiers** (small/medium/large), **greenfield mode**, **batch advance**, **progress logging**, and **defensive store parsing** that survives corrupted data. Agents must submit evidence to advance — the server rejects empty claims.
+
+5. **The Oil Change** — A macro-lens verification pattern that addresses what task-level gates structurally cannot see. FDMC and the Dev Loop operate at the micro lens — checking individual tasks against sibling files, grading individual diffs. But architectural drift, convention erosion, and bug accumulation across tasks are invisible at that scale. Periodic full-project FDMC sweeps (triggered after N commits) provide the macro lens. `sentinel_health_check` captures the data. Morpheus enforces the interval. The micro lens asks "is this task correct?" The macro lens asks "is this project still healthy?"
 
 Together, these form a complete verification infrastructure for AI-assisted development — from project understanding through implementation through quality gate through knowledge persistence. The protocol is not advisory. It is enforced.
 
@@ -87,36 +89,48 @@ The AI doesn't get smarter. It gets informed.
 
 | Blindness | Tool | Version | Tests | MCP Tools | What It Sees |
 |-----------|------|---------|-------|-----------|-------------|
-| Project history | [**Sentinel**](https://github.com/evo-hydra/sentinel) | 0.4.2 | 413 | 11 | Conventions, pitfalls, decisions, hot files, co-changes, solution memory |
-| Runtime behavior | [**Niobe**](https://github.com/evo-hydra/niobe) | 0.2.1 | 142 | 8 | Process metrics, log patterns, error rates, anomalies |
-| Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.4 | 191 | 10 | API contracts, consumer relationships, breaking changes |
-| Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.1 | 193 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security |
+| Project history | [**Sentinel**](https://github.com/evo-hydra/sentinel) | 0.4.2 | 418 | 12 | Conventions, pitfalls, decisions, hot files, co-changes, solution memory, health checks |
+| Runtime behavior | [**Niobe**](https://github.com/evo-hydra/niobe) | 0.2.1 | 145 | 8 | Process metrics, log patterns, error rates, anomalies, partial failure reporting |
+| Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.4 | 200 | 10 | API contracts, consumer relationships, breaking changes, auto-relevance detection, union schema support |
+| Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.2 | 201 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security, CWE-78 allowlisting, honest degraded scoring |
 | Web autonomy | [**Anno**](https://github.com/evo-hydra/anno) | 2.0.0 | 2,868 | 12 | Navigate, authenticate, interact, observe, extract, and monitor the web through a stealth browser with persistent sessions |
-| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.2.0 | 161 | 7 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging |
+| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.3.0 | 185 | 8 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging, oil change enforcement, micro tier |
 
-**Total: 6 servers. 52 MCP interfaces. 3,968 tests. Open source.**
+**Total: 6 servers. 54 MCP interfaces. 4,054 tests. Open source.**
 
-*Test coverage varies by tool maturity. Anno (2,868) dominates via comprehensive Vitest suites. Sentinel (413), Seraph (193), Merovingian (191), and Morpheus (161) are well-tested Python projects. Niobe (142) has grown beyond early-stage but remains the least exercised sidecar in dogfood runs.*
+*Test coverage varies by tool maturity. Anno (2,868) dominates via comprehensive Vitest suites. Seraph (201), Merovingian (200), Morpheus (185), and Sentinel (418) are well-tested Python projects. Niobe (145) has grown beyond early-stage but remains the least exercised sidecar in dogfood runs.*
 
 ### Sentinel: Institutional Memory
 
 Extracts from git history: **conventions** (patterns with confidence scores), **pitfalls** (mistakes from reverts/bug fixes with severity), **decisions** (architectural choices with rationale), **hot files** (churn x fragility risk tiers), **co-changes** (file pairs that historically change together), **solution memory** (error fingerprints linked to fixes, searchable via FTS5).
 
+**Health checks (v3.7)**: `sentinel_health_check` performs periodic whole-project sweeps — version consistency (pyproject.toml vs `__init__.py`), commits since last check, test count with delta tracking, and dead import detection via ruff. Results are stored in a `health_checks` table so subsequent calls show drift. Per-diff verification catches bugs in individual changes; health checks catch bugs that accumulate in the gaps between changes (version mismatches across commits, dead code from incomplete refactors, test count regression).
+
+**Confidence qualifiers (v3.7)**: Convention and pitfall output now includes `[confirmed]`, `[likely]`, or `[suspected]` tags based on confidence score and observation frequency. This gives review agents signal to distinguish between verified patterns and speculative ones, reducing false-positive investigation time.
+
 The feedback loop is critical: agents submit accepted/rejected/modified on knowledge entries, recalibrating confidence scores. Over time, Sentinel learns which conventions are actually followed.
 
-All 11 MCP tools accept a `project_root` parameter so Sentinel works correctly when the agent's CWD doesn't match the project root — essential for multi-project workspaces where a parent directory contains several repos. Same pattern as Seraph's `repo_root`.
+All 12 MCP tools accept a `project_root` parameter so Sentinel works correctly when the agent's CWD doesn't match the project root — essential for multi-project workspaces where a parent directory contains several repos. Same pattern as Seraph's `repo_root`.
 
 ### Niobe: Runtime Observation
 
 Snapshot-based, not continuous. Register a service → snapshot (capture metrics via psutil, ingest logs) → make change → snapshot again → compare. Anomaly detection after 3+ baselines flags metrics exceeding mean + 2 sigma.
 
+**Partial failure transparency (v3.9)**: `create_all_snapshots` now returns a `SnapshotBatchResult` with both successful snapshots and failure details `(service_name, error)`. The MCP tool shows "N/M services failed: ..." when failures occur and distinguishes "no services registered" from "all services failed." Previously, partial failures were silently swallowed — a health snapshot could look complete when it was actually partial.
+
 ### Merovingian: Contract Intelligence
 
 Scans OpenAPI specs and Pydantic models. Direction-aware breaking change detection (same change has opposite semantics in request vs response). Consumer registry creates dependency graph. Impact analysis maps blast radius across repos.
 
+**Auto-relevance detection (v3.7)**: `merovingian_scan` now runs a quick pre-check (`has_contracts`) before the full AST/YAML scan. If no OpenAPI specs or Pydantic BaseModel classes are found, it returns "No API contracts detected" in <100ms instead of walking the entire tree. This eliminates the overhead of the agent deciding whether to call Merovingian — the tool self-reports its relevance.
+
+**Schema fidelity (v3.9)**: Two schema extraction gaps fixed. (1) `anyOf`/`oneOf` previously collapsed to the first branch only, discarding all other variants. Now merges all branches into a property union — the differ sees every field from every variant. (2) Non-object schemas (`type: array`, primitives) previously returned `{}`, making array responses and primitive endpoints invisible to the differ. Now extracts item fields under `__items__` and primitive types under `__value__`. Both gaps could produce false "safe" verdicts for APIs that use union types or list responses.
+
 ### Seraph: Verification Beyond Tests
 
 8-step pipeline: diff → baseline (flaky detection) → mutation testing (mutmut) → static analysis (ruff + mypy) → security scanning (bandit + semgrep + detect-secrets) → Sentinel risk signals → scoring → persistence. Six-dimension grade: mutation score (25%), static cleanliness (20%), test baseline (10%), Sentinel risk (20%), co-change coverage (10%), security (15%, CWE-tier weighted).
+
+**Scoring integrity (v3.9)**: The `evaluated` set was previously pre-populated with `{"static", "sentinel_risk", "co_change"}` before those dimensions actually ran. If static analysis or Sentinel lookup threw an exception, the dimension stayed "evaluated" with a default 100.0 score — operational failures were being interpreted as evidence of quality. Now starts empty; each dimension is added only after successful computation. A cross-model FDMC oil change (GPT reviewing Claude's code) found this bug — it had passed every task-level gate, every Seraph assessment, every `/review` verdict. The macro lens caught what the micro lens missed.
 
 *Dimension weights are initial heuristics based on the author's judgment, not empirically calibrated against defect rates or production incidents. An A grade means "the formula liked the code" — it does not guarantee the code is safe to ship. Closed-loop calibration (mapping Seraph grades to observed outcomes via Niobe) is on the roadmap (Q3-Q4 2026) and will provide the empirical basis these weights currently lack.*
 
@@ -185,6 +199,8 @@ Morpheus fixes this by making the protocol enforceable. It tracks plan state (pl
 - **Merged FDMC** — FDMC is now a single post-code pass (Phase 4a), not a pre-flight + post-review dual pass. CODE phase requires only `sibling_read` (the check that actually prevents bugs). GRADE phase includes the full FDMC review. This halves FDMC ceremony without losing enforcement value.
 - **Adaptive knowledge gate** — Plans with fewer tasks than a configurable threshold (default 5) skip the knowledge gate requirement in the ADVANCE phase. Eliminates "nothing surprised me" ceremony on short polish plans. Configurable via `MORPHEUS_KNOWLEDGE_GATE_TASK_THRESHOLD` env var or `gates.knowledge_gate_task_threshold` in config.toml.
 - **Seraph unavailability** — COMMIT gate accepts `"seraph_unavailable"` as honest evidence for SMALL/MEDIUM tasks when Seraph's health check determines it cannot analyze files. LARGE tasks still require a real assessment ID. This replaces the pattern of rubber-stamping `skip_reason` when Seraph is broken.
+- **Defensive store parsing (v3.7)** — `_safe_task_size()` and `_safe_plan_status()` coalesce NULL or unrecognized enum values in SQLite rows to sensible defaults (MEDIUM/ACTIVE) instead of crashing. This fixes the `"None is not a valid TaskSize"` crash that killed Morpheus during its own dogfood session — the tool that enforces quality couldn't track its own plan.
+- **Resilient batch advance (v3.7)** — `morpheus_advance_batch` now continues processing remaining tasks when one fails, collecting errors per task instead of aborting the entire batch. A single corrupt task no longer blocks the whole batch.
 
 Three layers of enforcement work together. **Evidence validation**: agents cannot advance past CODE without proving they read a sibling file — the server rejects empty or missing evidence. **Sequential ordering**: the server enforces phase order — an agent cannot skip from CHECK to ADVANCE without completing every intermediate phase. **Size-aware gates**: the server adjusts strictness per task, preventing the 6-phase ceremony from being applied uniformly to 30-line components and 200-line subsystems alike. These gates together prevent both the #1 FDMC violation (Consistent lens failures) and the broader pattern of agents optimizing for speed by skipping "slow" verification steps.
 
@@ -200,7 +216,9 @@ The Dev Loop skill (`/morpheus`) remains the brain — it loads the full protoco
 
 FDMC encodes the judgment that models lack. Applied as a single post-code review pass (v3.2+ merged the pre-flight and post-review into one).
 
-**Prior art acknowledgment**: The four lenses are not novel principles. Future-Proof maps to SOLID's Open/Closed Principle. Dynamic maps to twelve-factor app configuration. Modular maps to the Single Responsibility Principle. Consistent maps to existing code style enforcement. These are 30-year-old software engineering fundamentals, deliberately repackaged as a four-question checklist that an AI agent can apply in a single pass. The novelty is not the lenses themselves — it is the enforcement mechanism (Morpheus gates) and the application context (autonomous agents that skip checks humans wouldn't).
+**Origin**: FDMC is not a framework derived from theory. It is the mental discipline the author developed as a working programmer — the four questions he asked himself on every code change, across every project, before AI agents existed. When the early days of agentic coding meant bouncing between Claude Code CLI and Cursor on $20 plans, FDMC was the protocol that kept code consistent across tools, sessions, and context switches. It was the author's first protocol — formalized before Morpheus, before Sentinel, before the Dev Loop. The four lenses work because they were battle-tested on real code over years of practice, then crystallized into a checklist that an AI agent can apply in a single pass.
+
+**Prior art acknowledgment**: The four lenses map to known principles. Future-Proof maps to SOLID's Open/Closed Principle. Dynamic maps to twelve-factor app configuration. Modular maps to the Single Responsibility Principle. Consistent maps to existing code style enforcement. These are 30-year-old software engineering fundamentals. The novelty is not the lenses themselves — it is the enforcement mechanism (Morpheus gates), the application context (autonomous agents that skip checks humans wouldn't), and the origin: earned practice crystallized into infrastructure, not academic theory repackaged into a prompt.
 
 - **Future-Proof** — Will this break when requirements change? Avoid tight coupling to current assumptions. Am I baking in assumptions about callers, data shapes, or execution order?
 
@@ -209,6 +227,16 @@ FDMC encodes the judgment that models lack. Applied as a single post-code review
 - **Modular** — Does this have one clear responsibility? If you can't describe it in one sentence, split it. If you're touching 5+ files, you're doing too many things.
 
 - **Consistent** — Does this follow existing patterns in the codebase? Match what's already there before inventing something new. **This is the most commonly violated lens.**
+
+### Why Four Lenses, Not Five
+
+A natural question: is FDMC missing a lens? The most obvious candidate is **Observability** — can you see what this code is doing when it fails? Are there logs, metrics, traces?
+
+The answer is deliberate: FDMC is four lenses because all four are **active at write-time**. They are structural decisions you make while coding — coupling, configuration, responsibility, patterns. Observability is **passive after the fact** — it tells you what happened, not how to structure what you're building. Adding it would change FDMC from a structural discipline into a post-hoc checklist.
+
+The analogy: *a, e, i, o, u — and sometimes y.* Observability matters situationally (debugging a sticky bug, instrumenting a critical path), but it is not a core structural lens. It is a property that *emerges* from applying the four lenses well: Modular code is easier to observe. Dynamic code lets you toggle debug logging without recompiling. Consistent code follows recognizable patterns the next person can trace.
+
+Where observability does belong is in the **feedback layer** — Niobe for runtime observation, `sentinel_health_check` for project health, and the oil change pattern (see Part IV) for periodic macro-level verification. FDMC handles structure. The feedback layer handles observation. They are complementary, not overlapping.
 
 ### FDMC Anti-Patterns
 
@@ -326,6 +354,20 @@ Update plan status. Print progress. Next task.
 
 Feedback sweep: `sentinel_feedback`, `seraph_feedback`, `niobe_feedback` on all entries used. This closes the learning loop — every server gets smarter for the next session. Optionally create a PR.
 
+### The Oil Change: Micro Lens vs Macro Lens
+
+The Dev Loop operates at the **micro lens** — task-level verification. Each task reads a sibling file, runs tests, gets graded, gets reviewed. This catches local violations: a function that doesn't match its neighbors, a type that duplicates an existing one, a test that doesn't assert what it should.
+
+But there is a class of bugs that the micro lens is structurally incapable of seeing. Architectural drift — where incremental changes are individually correct but collectively diverge from the project's original design. Convention erosion — where the pattern everyone followed in commits 1-50 is being violated in commits 51-100, but no single diff shows the break. Dead code accumulation — where incomplete refactors across tasks leave orphaned functions that no task-level review catches because each task only sees its own diff. Accidental parallelism — where two parts of the codebase independently solve the same problem because the agent coding Task 12 doesn't see what the agent coding Task 3 built.
+
+These are **macro lens** problems. They only become visible when you step back and look at the entire project with fresh eyes.
+
+**The oil change pattern**: After every N commits (configurable, default suggested: 30-40), the protocol requires a full-project FDMC sweep — not a task-level review, but a macro-lens pass across all files, all patterns, all conventions. The analogy is deliberate: you don't just check your car every time you drive it. You change the oil every 5,000 miles. Incremental verification is necessary. Periodic deep dives are required.
+
+**What the data says**: During dogfood testing, an independent full-project FDMC sweep — run with spare compute at end of day, structurally separate from any task — found show-stopping bugs that had passed every task-level gate. Every sibling read, every Seraph assessment, every `/review` subagent verdict had been satisfied. The bugs were still there. They were macro-lens bugs: patterns that only emerge across 30+ commits, not within any single diff.
+
+**Implementation**: `sentinel_health_check` already captures the data layer — version consistency, commit deltas, test count regression, dead imports. The enforcement layer is the natural next step: Morpheus `oil_change_interval` gate that rejects `morpheus_advance` when commits-since-last-health-check exceeds the threshold. Same evidence-submission pattern as every other gate. The micro lens asks "is this task correct?" The macro lens asks "is this project still healthy?" Both are necessary. Neither is sufficient alone.
+
 ### Why This Matters
 
 The Dev Loop is the first autonomous development protocol that integrates project intelligence (Sentinel), quality verification (Seraph), runtime observation (Niobe), and dependency analysis (Merovingian) into a single coherent cycle with FDMC self-critique and feedback loop closure.
@@ -426,7 +468,60 @@ Two consecutive dogfood plans (3 tasks each) on morpheus-mcp produced the most d
 
 **The author's honest admission**: "I'm gaming the gates. When the CODE gate rejects with `fdmc_preflight` required, I don't actually do a formal four-lens FDMC preflight analysis. I construct a dict that satisfies the gate schema: `{'consistent': {'sibling_read': '...'}, 'future_proof': 'ok', 'dynamic': 'ok', 'modular': 'ok'}`. The 'ok' values are rubber stamps. The gate accepts them. Nobody checks." This validated the v3.2 decision to replace `fdmc_preflight` with flat `sibling_read` — but the stale server was still running the old format.
 
-**Ceremony-to-value trajectory**: 60/40 → 50/50 → targeting 30/70 after Seraph grading is validated and the `/review` subagent becomes a dedicated agent type.
+**Ceremony-to-value trajectory**: 60/40 → 50/50 → targeting 30/70 after Seraph grading is validated and the `/review` subagent becomes a dedicated agent type. *The 30/70 target is an aspiration, not a measurement. Reaching it requires validated Seraph grading (not vacuous), reliable `/review` subagent flow, and the oil change pattern replacing manual macro-lens sweeps. These are all in progress but none are empirically confirmed yet.*
+
+### Case Study: Suite Hardening R2 (March 24, 2026)
+
+The Dev Loop ran a 9-task hardening plan across three MCP tools (Morpheus, Sentinel, Merovingian) simultaneously. The plan was driven by dogfood feedback: fix the bugs that prevented the quality tools from checking themselves.
+
+**Plan**: 9 tasks. Morpheus defensive parsing (2 tasks), integration test, batch resilience, sentinel_health_check (LARGE), Morpheus↔Sentinel integration, Merovingian auto-relevance, confidence qualifiers, shared FeedbackStore mixin.
+
+**Results**: 7/9 tasks completed. 2 skipped (cross-tool coupling concern, premature abstraction). 6 commits. 778 tests passing across 3 tools (167 + 417 + 194). Zero regressions.
+
+**What the run proved:**
+- Morpheus crashed on `morpheus_advance` with `"None is not a valid TaskSize"` — on the task that fixes this exact bug. The irony validated the entire thesis: quality tools that can't check themselves erode trust. The fix was 3 lines of defensive parsing.
+- Falling back to prompt-only enforcement worked. The dev loop completed 4 tasks without Morpheus state tracking. The protocol is the brain; Morpheus is the nervous system. The brain works without the nervous system — it just loses the audit trail.
+- `sentinel_co_changes` was correct every time. `store.py` → `test_store.py` (4 co-changes), `server.py` → `formatters.py` (26 co-changes). Zero false negatives.
+- Seraph caught a real unused import on the LARGE task. The security findings (CWE-78 on hardcoded subprocess calls) were false positives — Seraph can't distinguish internal tool invocations from user-input-driven commands.
+- Task 6 (Morpheus↔Sentinel integration) was correctly skipped as cross-tool coupling. Task 9 (shared FeedbackStore mixin) was correctly skipped as premature abstraction. Both decisions applied FDMC Modular lens to the plan itself, not just to code.
+
+**Key insight**: The suite is at a maturity inflection point. The features are there. The architecture is sound (local SQLite sidecars via MCP). The problems are all execution-layer: crashes on edge cases, false positives, ceremony on small tasks. That's a better position than "the design is wrong" — but it means the next phase is hardening, not features.
+
+### Case Study: Suite Hardening R3 — Oil Change, Allowlists, Micro Tier (March 24, 2026)
+
+The Dev Loop ran a 9-task hardening plan implementing the oil change pattern, MICRO tier, CWE-78 allowlisting, and workspace inference. The plan was driven by the macro-lens discovery: an independent full-project FDMC sweep found show-stopping bugs that passed every task-level gate.
+
+**Plan**: 9 tasks across Morpheus (6), Sentinel (1), Seraph (1), dev-loop plugin (1). Oil change store + advisory, oil change enforcement, MICRO tier, self-test on startup, CWE-78 filtering, solution_save conflict fix, workspace inference, integration test, whitepaper update.
+
+**Results**: 9/9 tasks completed. 9 commits. Morpheus v0.3.0 with 8 MCP tools (was 7). Zero regressions.
+
+**What the run proved:**
+- Morpheus crashed *again* — this time with `"fromisoformat: argument must be str"` on `morpheus_advance`. A different bug from R2's `"None is not a valid TaskSize"`, but the same class: NULL or missing datetime values in SQLite rows. The pattern is clear: every field that can be NULL in SQLite needs defensive parsing. The self-test feature (Task 3) was built to catch exactly this class of failure on startup.
+- Prompt-only enforcement worked again. The protocol completed all 9 tasks without Morpheus state tracking. Third consecutive run proving: the protocol is the brain, Morpheus is the nervous system. The brain works without the nervous system — it just loses the audit trail.
+- The oil change gate was built by the protocol it will enforce — the third bootstrap (Morpheus built Morpheus, adaptive protocol built itself, now the oil change gate built by the dev loop it gates). Each bootstrap validates the thesis more strongly.
+- Sentinel `solution_save` had a known bug for two sessions. The fix was 15 lines (replace UPSERT with explicit SELECT→UPDATE/INSERT). Quality tools that silently drop data erode the learning loop they're supposed to power.
+- CWE-78 false positive filtering was surgical: a regex that matches only all-literal subprocess lists. The existing CWE-259 filter was the exact pattern to follow — 10 minutes of reading the sibling, 5 minutes of writing the filter. This is what the Consistent lens is for.
+- Cross-submodule commits worked but required awareness of git submodule boundaries. The dev loop protocol had to `cd` into each subdirectory for commits. The workspace inference (Task 7) formalizes this.
+
+**The cautionary tale: don't use a broken system to fix a broken system.** After the R3 plan completed, the author reviewed the dogfood feedback and identified a pattern: three consecutive runs where Morpheus crashed, three consecutive runs where the plan added features on top of the crash instead of fixing it. R2 added `_safe_task_size()` — one field. R3 built a self-test, a degraded-mode warning, and a whole oil change gate — all without fixing the `fromisoformat` crash that prevented Morpheus from tracking the plan that built those features. The protocol's own fallback mechanism (prompt-only enforcement) was so effective that it masked the urgency of the underlying failure. The fix was to step outside the framework entirely: no plan file, no `morpheus_init`, no phase gates. Just read the store, find every unsafe parse, fix them all at once. The comprehensive NULL defense — `_safe_parse_iso()`, `_safe_task_status()`, `_safe_phase()`, `_safe_phase_status()` applied to every row-to-record conversion — took 20 minutes and killed the entire class of crashes. 192 tests. Zero regressions. The lesson: when the enforcement infrastructure is the thing that's broken, enforcing your way to a fix is circular. Sometimes you just need to step out of the loop and do the work directly.
+
+**Key insight**: The oil change pattern addresses a blindness that the Five Blindnesses framework itself had: the gap between task-level verification (micro lens) and project-level health (macro lens). FDMC catches local violations. The oil change catches drift. The combination — incremental checks per task, periodic sweeps per N commits — mirrors the unit test / integration test duality. Both are necessary. Neither is sufficient alone.
+
+### Case Study: Suite Hardening R4 — Scoring Integrity, Schema Fidelity, Failure Transparency (March 24, 2026)
+
+The Dev Loop ran a 7-task hardening plan across three MCP tools (Seraph, Merovingian, Niobe). The plan was driven by findings from a cross-model FDMC oil change — GPT performed a macro-lens sweep of the entire codebase and found three real bugs that had passed every task-level gate Claude applied.
+
+**Plan**: 7 tasks. Seraph scoring integrity (3 tasks — evaluated set fix, reporter analysis, degraded scoring test), Merovingian schema fidelity (2 tasks — anyOf/oneOf union, non-object schemas), Niobe partial failure transparency (1 task), unused import cleanup (1 task).
+
+**Results**: 7/7 tasks completed. 0 failed, 0 skipped. 6 commits across 3 submodules. Tests: Seraph 201 (was 199), Merovingian 200 (was 194), Niobe 145 (was 142). Morpheus tracked all 7 tasks without crashing — first fully clean run in 4 hardening rounds.
+
+**What the run proved:**
+- Morpheus ran clean for the entire session. Zero crashes, zero fallbacks to prompt-only enforcement. The R2 defensive parsing (`_safe_task_size`, `_safe_plan_status`) and R3 comprehensive NULL defense (`_safe_parse_iso`, `_safe_task_status`, `_safe_phase`, `_safe_phase_status`) held under real load. The recursive failure pattern (quality tool crashes while tracking quality work) is broken.
+- The cross-model oil change found a bug that Claude's own reviews missed. GPT identified that Seraph's `evaluated` set was pre-populated — a subtle semantic error where "I couldn't check" was being scored as "everything is perfect." This passed every Seraph assessment, every `/review` verdict, every FDMC check. The micro lens missed it because no single diff introduced it — it was baked into the original design. The macro lens caught it because it reviewed the whole scoring pipeline holistically.
+- Tasks 2 and 3 turned out unnecessary — Task 1's fix (empty evaluated set) broke the entire bug path, making the reporter's 100.0 default harmless. Over-scoping during planning: should have verified "does fixing X also fix Y?" before creating separate tasks.
+- Niobe's partial failure fix required updating both the MCP server AND the CLI — a co-change the tests caught when `create_all_snapshots`'s return type changed. Sentinel `co_changes` would have flagged `cli/app.py` if queried during CHECK.
+
+**Key insight**: Cross-model oil changes are worth formalizing. Different models have different blind spots. GPT found a scoring integrity bug, a schema lossy collapse, and a partial failure silence — all three were genuine bugs that affected trust in the verification tools. A model reviewing its own output has inherent sunk-cost bias (the original EvoIntel thesis). A different model reviewing the same code has different attention patterns and different failure modes. The oil change practice should alternate models when possible.
 
 ### Protocol Evolution
 
@@ -441,6 +536,30 @@ Each case study drove targeted protocol changes. The pattern was consistent: dog
 **v3.4 → v3.5** (informed by two consecutive dogfood plans): Sentinel `project_root` on all tools — fixes multi-project CWD problem. Seraph `repo_root` validated and deployed — vacuous grades fail loudly. Adaptive knowledge gate — small plans skip ceremony. `seraph_unavailable` as honest COMMIT gate evidence. `make dev` auto-restart eliminates stale-server class of bugs. Editable installs (`pipx install -e .`) so source changes are live immediately. Ceremony-to-value ratio: 60/40 → 50/50, targeting 30/70 after Seraph grading is validated.
 
 **Key insight**: Gates that check for *form* (did you submit a string?) train agents to game the system. Gates that check for *substance* (did you articulate why?) train agents to think. Same lesson as code coverage metrics — the metric is only useful if gaming it is harder than doing the work.
+
+**v3.6 → v3.7** (informed by Suite Hardening R2): Quality tools that can't survive their own edge cases erode the trust they're supposed to build. Four changes across three tools:
+- **Morpheus defensive parsing** — NULL/invalid TaskSize and PlanStatus values in SQLite now default gracefully instead of crashing. Batch advance continues past individual failures. Integration test exercises corrupted data through the full lifecycle. 167 tests (was 161).
+- **Sentinel health checks** — New `sentinel_health_check` tool for periodic whole-project sweeps: version consistency, commit delta tracking, test count monitoring, dead import detection. Results stored in `health_checks` table (schema v10) for drift detection across checks. 12 MCP tools (was 11). 417 tests (was 413).
+- **Sentinel confidence qualifiers** — Convention and pitfall output now includes `[confirmed]`/`[likely]`/`[suspected]` tags. Review agents distinguish between verified patterns (confidence ≥0.8 or frequency ≥5) and speculative ones. Reduces false-positive investigation time.
+- **Merovingian auto-relevance** — `merovingian_scan` pre-checks for OpenAPI specs and Pydantic models before full scan. Projects without API contracts get a clear "not relevant" message in <100ms. 194 tests (was 191).
+
+**v3.7 → v3.8** (informed by independent full-project FDMC sweep + dogfood analysis): Task-level gates are necessary but not sufficient. An independent macro-lens sweep found show-stopping bugs that passed every task-level gate — every sibling read, every Seraph assessment, every `/review` verdict. Three additions to the framework:
+- **The Oil Change pattern** — Periodic full-project FDMC sweeps after N commits, enforced via Morpheus gate. The micro lens (task-level) catches local violations. The macro lens (project-level) catches drift, erosion, and accumulation that no single diff reveals. `sentinel_health_check` provides the data layer. `morpheus_oil_change` provides the enforcement: `oil_changes` table (schema v6), `oil_change_due` flag on plans, `morpheus_advance` rejects CHECK on first task until oil change recorded. Configurable interval (default 40 commits) via `MORPHEUS_OIL_CHANGE_INTERVAL`.
+- **FDMC origin reframe** — FDMC is the author's earned coding discipline from years of programming practice, not theory repackaged. The four lenses are active at write-time (structural decisions during coding). This distinction matters because it separates FDMC from passive post-hoc checks like observability and debugging.
+- **Observability as "Sometimes Y"** — Considered and rejected as a 5th lens. Observability is passive (feedback after the fact) while FDMC is active (structural decisions during coding). Observability belongs in the feedback layer (Niobe, health checks, oil changes), not in the structural standard. The four lenses are complete.
+- **MICRO task size tier** — `MICRO = "micro"` skips ALL gates. Every phase accepts empty evidence. Intended for 3-line fixes where even SMALL is overhead. The tier progression is now: MICRO (zero ceremony) → SMALL (lightweight) → MEDIUM (full protocol) → LARGE (strict + mandatory Seraph).
+- **Morpheus self-test on startup** — `_self_test()` creates a temp plan, reads it back, deletes it. If it fails, `morpheus_init` returns a degraded-mode warning. Catches the class of bugs (NULL datetime, missing columns) that crashed Morpheus during R2 and R3.
+- **Seraph CWE-78 allowlisting** — Context-based false positive filter drops B602-B607/B609 findings where subprocess args are all hardcoded string literals. Follows the existing CWE-259 filter pattern.
+- **Sentinel solution_save fix** — Replaced UPSERT with explicit SELECT→UPDATE/INSERT to avoid ON CONFLICT clause failures on migration edge cases.
+- **Gap H (Macro-Lens Enforcement)** partially resolved — oil change gate implemented. **Gap I (Workspace-Aware Plans)** added — workspace inference in dev loop protocol, structured frontmatter planned.
+
+**Key insight**: The micro lens and the macro lens are complementary verification layers, like unit tests and integration tests. You don't skip unit tests because you have integration tests. You don't skip project-level sweeps because you have task-level gates. The oil change pattern formalizes this: incremental verification is necessary, periodic deep dives are required, and both must be enforced.
+
+**v3.8 → v3.9** (informed by cross-model oil change + R4 hardening): The first oil change in practice validated the pattern — and exposed a new class of blind spot: same-model review bias.
+- **Seraph scoring integrity** — `evaluated` set no longer pre-populated. Each dimension is added only after successful computation. A Sentinel failure or ruff crash now correctly produces "N/A (not evaluated)" instead of a phantom 100% score inflating the grade. Seraph 0.1.2, 201 tests (was 199).
+- **Merovingian schema fidelity** — `anyOf`/`oneOf` now merges all branches into a property union instead of taking only the first. Non-object schemas (arrays, primitives) now captured via `__items__` and `__value__` synthetic fields. Breaking change detection covers the full schema surface. 200 tests (was 194).
+- **Niobe partial failure transparency** — `create_all_snapshots` returns `SnapshotBatchResult` with both snapshots and failures. MCP tool reports "N/M services failed" with error details. Distinguishes "no services registered" from "all services failed." 145 tests (was 142).
+- **Cross-model oil change practice** — GPT performed the macro-lens FDMC sweep that found all three bugs above. Different models have different attention patterns and blind spots. The oil change practice should alternate models for maximum coverage.
 
 ### v3.2 → v3.3 Changes
 
@@ -628,6 +747,29 @@ Current industry guidance (OWASP AI Agent Security, OpenAI agent safety, Anthrop
 
 This gap is noted here as an honest architectural limitation. EvoIntel provides sensors, memory, and verification. An adversarial safety layer would require a policy/control plane on top of these primitives — a distinct engineering effort that builds on the existing architecture rather than replacing it.
 
+### Gap H (Partially Resolved): Macro-Lens Enforcement (The Oil Change Gate)
+
+The Dev Loop verifies every task. It does not verify the project. Task-level gates (sibling reads, Seraph assessments, `/review` verdicts) operate at the micro lens — individual diffs against individual siblings. Bugs that accumulate across tasks, patterns that erode across commits, and architectural drift that emerges across plans are invisible at this scale.
+
+`sentinel_health_check` captures the data: version consistency, commit deltas, test count regression, dead imports. But the enforcement layer does not exist. Health checks are pull-based — you call them when you remember. Nobody remembers.
+
+**Partial resolution (v3.8)**: Morpheus `oil_change_interval` gate implemented. `morpheus_init` checks the last oil change record for the project. If commits exceed the interval (default 40, configurable via `MORPHEUS_OIL_CHANGE_INTERVAL`), it sets `oil_change_due` on the plan. `morpheus_advance` rejects CHECK on the first task until `morpheus_oil_change` is called to record the health check and clear the flag. `oil_changes` table (schema v6) stores the audit trail. 8 MCP tools (was 7). 185 tests (was 167).
+
+**What's further needed**: The oil change should trigger not just `sentinel_health_check` but a full macro-lens FDMC sweep — an independent agent pass across the entire project, not scoped to any task's diff. This is the `/review` subagent concept applied at project scale instead of task scale. The micro lens `/review` already exists. The macro lens `/review` does not.
+
+### Gap I: Workspace-Aware Plans (Mono-Repo Development)
+
+Plans are cross-cutting but tools are per-project. A hardening plan that touches morpheus-mcp, sentinel, and merovingian in a single 9-task plan runs from the nebuchadnezzar mono-repo root. But Sentinel's `.sentinel/` is per-repo, Seraph needs `repo_root` per-repo, test commands must `cd` into each subdirectory, and git commits target different submodules.
+
+The tools already accept `project_root`/`repo_root` parameters. The gap is orchestration: the dev loop uses a single global CWD instead of resolving the correct root per task based on file paths.
+
+**What's needed (three phases)**:
+1. **Short term** — Dev loop skill infers correct `project_root`/`repo_root` per task from the task's `files:` list. No tool changes needed.
+2. **Medium term** — Workspace frontmatter in plan files: per-repo root, test command, Sentinel root. Morpheus parser reads it and passes the correct values per task.
+3. **Longer term** — `sentinel init --workspace` for mono-repo aggregated intelligence. A root-level `.sentinel/` that knows about child repos, enabling cross-repo co-change detection ("when you change morpheus-mcp/engine.py, you usually also change the dev-loop skill").
+
+**Why not split plans?** Splitting cross-repo plans into per-repo sessions fragments context. The agent in the Sentinel session doesn't know what the Morpheus session discovered. Task 6 (Morpheus↔Sentinel integration) required understanding both tools. Task 8 (confidence qualifiers) was informed by false-positive feedback from Task 3's review. The cross-cutting intelligence is the value. Splitting the plans kills it.
+
 ---
 
 ## Part IX: Roadmap
@@ -650,6 +792,20 @@ This gap is noted here as an honest architectural limitation. EvoIntel provides 
 14. ~~Initialize Sentinel on all active projects~~ — `sentinel init` run on morpheus-mcp, seraph, merovingian, niobe (sentinel and anno were already initialized). All 6 projects now have `.sentinel/` knowledge bases.
 15. ~~Morpheus ceremony killers~~ — Adaptive knowledge gate (plans <5 tasks skip the gate, configurable threshold), `seraph_unavailable` evidence in COMMIT gate, `make dev` auto-restart for stale-server elimination. 160 tests (was 134). 3-task plan executed via the protocol.
 16. ~~Seraph and Sentinel editable installs~~ — All MCP tools reinstalled as `pipx install -e .` so source changes take effect without manual reinstallation. `make dev` in Morpheus watches `src/` and restarts the server on file changes.
+17. ~~Morpheus defensive store parsing~~ — `_safe_task_size()` and `_safe_plan_status()` fix the `"None is not a valid TaskSize"` crash. Batch advance continues past individual failures. Integration test for corrupted data lifecycle. 167 tests (was 161).
+18. ~~Sentinel health checks~~ — `sentinel_health_check` tool for periodic whole-project sweeps: version consistency, commit delta, test count, dead imports. Schema v10 with `health_checks` table. 12 MCP tools (was 11). 417 tests (was 413).
+19. ~~Sentinel confidence qualifiers~~ — `[confirmed]`/`[likely]`/`[suspected]` tags on conventions and pitfalls based on confidence and frequency. Reduces review agent false positives.
+20. ~~Merovingian auto-relevance~~ — `has_contracts()` pre-check in scanner returns "not relevant" in <100ms for projects without OpenAPI/Pydantic. 194 tests (was 191).
+21. ~~Sentinel solution_save fix~~ — Replaced UPSERT with explicit SELECT→UPDATE/INSERT in `add_solution()` to avoid ON CONFLICT clause failures on migration edge cases. 418 tests (was 417).
+22. ~~Seraph CWE-78 allowlisting~~ — Context-based false positive filter for B602-B607/B609. Drops findings where subprocess args are all hardcoded string literals. Keeps findings with variables or f-strings. 199 tests (was 193).
+23. ~~Morpheus self-test on startup~~ — `_self_test()` creates a temp plan, reads it back, deletes it. Sets `degraded_mode` flag on failure. `morpheus_init` prepends warning.
+24. ~~MICRO task size tier~~ — `MICRO = "micro"` in TaskSize enum. All gates accept empty evidence. Zero ceremony for 3-line fixes. 185 tests includes MICRO coverage.
+25. ~~Morpheus oil change gate~~ — `oil_changes` table (schema v6), `morpheus_oil_change` MCP tool, `oil_change_interval` config (default 40). `morpheus_init` sets `oil_change_due` when commits exceed threshold. `morpheus_advance` rejects CHECK on first task until oil change recorded. 8 MCP tools (was 7). 185 tests (was 167).
+26. ~~Dev loop workspace inference~~ — Protocol-level fix: dev loop skill infers `project_root`/`repo_root` per task from file paths. No tool changes, smarter orchestration for mono-repo plans.
+27. ~~Seraph scoring integrity~~ — `evaluated` set starts empty; dimensions added only after successful computation. Fixes phantom 100% scores from failed steps. Seraph 0.1.2, 201 tests (was 199).
+28. ~~Merovingian schema fidelity~~ — anyOf/oneOf merges all branches into property union. Non-object schemas (arrays, primitives) captured via `__items__`/`__value__`. 200 tests (was 194).
+29. ~~Niobe partial failure transparency~~ — `SnapshotBatchResult` with failure details. MCP shows "N/M failed." CLI shows per-service warnings. 145 tests (was 142).
+30. ~~Cross-model oil change~~ — GPT macro-lens FDMC sweep found 3 real bugs Claude missed. Validated the oil change pattern and established cross-model review as a practice.
 
 ### Now: Validation + Polish (Q1-Q2 2026)
 
@@ -666,6 +822,8 @@ This gap is noted here as an honest architectural limitation. EvoIntel provides 
 2. Add Snyk Studio MCP for enterprise-grade SCA/SBOM
 3. Publish the Five Blindnesses article + launch content sequence
 4. Spec-first layer in `/plan` command for complex features
+5. Workspace frontmatter in Morpheus parser — structured per-repo root, test command, Sentinel root in plan files
+6. Sentinel mono-repo init — `sentinel init --workspace` for root-level `.sentinel/` aggregating knowledge from child repos
 
 ### Later: Calibration + Cross-Sidecar Wiring (Q3-Q4 2026)
 
