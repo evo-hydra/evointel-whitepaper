@@ -910,8 +910,18 @@ Each habit feeds the next session. Sentinel's confidence scores adjust based on 
 
 ## Part XI: Installation
 
+**Quick start (recommended):**
+
+1. Enable the **Morpheus** plugin from the Claude Code plugin marketplace
+2. Run `/morpheus:setup` — installs all five MCP servers from PyPI and configures `~/.claude/.mcp.json`
+3. Restart Claude Code
+
+That's it. Three steps. `/morpheus:setup` is idempotent — run it again to check or repair.
+
+**Manual install (or contributors working from source):**
+
 ```bash
-# The MCP Suite
+# The MCP Suite — from PyPI
 pipx install git-sentinel       # Project intelligence
 pipx install niobe              # Runtime observation
 pipx install merovingian        # Dependency intelligence
@@ -919,10 +929,11 @@ pipx install seraph-ai          # Verification intelligence
 pipx install morpheus-mcp       # Protocol enforcement
 npm install -g @evointel/anno   # Web autonomy for AI agents
 
-# The Dev Loop (Claude Code plugin)
-# Install from Claude Code plugin marketplace or:
-# Copy dev-loop/ to ~/.claude/plugins/
+# Or from source (editable installs for contributors)
+# /morpheus:setup --from-source /path/to/repos
 ```
+
+**First plan:** After setup, run `/morpheus:plan` with a description of your work. Then `/morpheus:implement` to execute it.
 
 Source: [github.com/evo-hydra](https://github.com/evo-hydra) | [evolvingintelligence.ai](https://www.evolvingintelligence.ai)
 
