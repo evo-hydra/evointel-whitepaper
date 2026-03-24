@@ -16,13 +16,13 @@ AI coding agents are not limited by intelligence. They are limited by blindness 
 
 EvoIntel addresses this with four layers:
 
-1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 54 MCP interfaces. 4,054 tests. SQLite + WAL + FTS5. No cloud. No Docker.
+1. **The MCP Suite** — Six local sidecar tools (Sentinel, Niobe, Merovingian, Seraph, Anno, Morpheus) that give AI agents sight into what they structurally cannot reach. 54 MCP interfaces. 4,036 tests. SQLite + WAL + FTS5. No cloud. No Docker.
 
 2. **FDMC** — A four-lens quality standard (Future-Proof, Dynamic, Modular, Consistent) that encodes the judgment models lack. Applied as a single post-code review pass with **enforced evidence gates** — agents must prove they checked, not just claim they did.
 
 3. **The Dev Loop** — An autonomous development protocol that orchestrates the suite into a coherent cycle: bootstrap MCP servers once, then for each task: check intelligence, code with FDMC, test, **independent review** via `/review` subagent, grade with mutation testing, commit with knowledge persistence, advance. Now **adaptive** — adjusts gate strictness by task size and project maturity. Closes the feedback loop at end of plan.
 
-4. **Morpheus** — An MCP-based orchestration server that tracks plan state with enforced phase gates. The Dev Loop skill is the brain (protocol in the agent's context). Morpheus is the nervous system (state persistence + gate enforcement). Now with **task size tiers** (small/medium/large), **greenfield mode**, **batch advance**, **progress logging**, and **defensive store parsing** that survives corrupted data. Agents must submit evidence to advance — the server rejects empty claims.
+4. **Morpheus** — An MCP-based orchestration server that tracks plan state with enforced phase gates. The Dev Loop skill is the brain (protocol in the agent's context). Morpheus is the nervous system (state persistence + gate enforcement). Now with **task size tiers** (micro/small/medium/large) with **size-aware gate relaxation**, **greenfield mode**, **batch advance**, **`test_command: none`** for honest test skipping, **progress logging**, and **defensive store parsing** that survives corrupted data. Agents must submit evidence to advance — the server rejects empty claims, but SMALL tasks have near-zero ceremony.
 
 5. **The Oil Change** — A macro-lens verification pattern that addresses what task-level gates structurally cannot see. FDMC and the Dev Loop operate at the micro lens — checking individual tasks against sibling files, grading individual diffs. But architectural drift, convention erosion, and bug accumulation across tasks are invisible at that scale. Periodic full-project FDMC sweeps (triggered after N commits) provide the macro lens. `sentinel_health_check` captures the data. Morpheus enforces the interval. The micro lens asks "is this task correct?" The macro lens asks "is this project still healthy?"
 
@@ -94,11 +94,11 @@ The AI doesn't get smarter. It gets informed.
 | Cross-service deps | [**Merovingian**](https://github.com/evo-hydra/merovingian) | 0.1.4 | 200 | 10 | API contracts, consumer relationships, breaking changes, auto-relevance detection, union schema support |
 | Code quality | [**Seraph**](https://github.com/evo-hydra/seraph) | 0.1.2 | 201 | 4 | Mutation survival, static analysis, flakiness, risk scoring, security, CWE-78 allowlisting, honest degraded scoring |
 | Web autonomy | [**Anno**](https://github.com/evo-hydra/anno) | 2.0.0 | 2,868 | 12 | Navigate, authenticate, interact, observe, extract, and monitor the web through a stealth browser with persistent sessions |
-| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.3.0 | 185 | 8 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging, oil change enforcement, micro tier |
+| Protocol enforcement | [**Morpheus**](https://github.com/evo-hydra/morpheus-mcp) | 0.3.0 | 204 | 8 | Plan state, phase gates, evidence validation, task lifecycle, batch advance, progress logging, oil change enforcement, micro tier, size-aware gate relaxation, `test_command: none` |
 
-**Total: 6 servers. 54 MCP interfaces. 4,054 tests. Open source.**
+**Total: 6 servers. 54 MCP interfaces. 4,036 tests. Open source.**
 
-*Test coverage varies by tool maturity. Anno (2,868) dominates via comprehensive Vitest suites. Seraph (201), Merovingian (200), Morpheus (185), and Sentinel (418) are well-tested Python projects. Niobe (145) has grown beyond early-stage but remains the least exercised sidecar in dogfood runs.*
+*Test coverage varies by tool maturity. Anno (2,868) dominates via comprehensive Vitest suites. Sentinel (418), Morpheus (204), Seraph (201), and Merovingian (200) are well-tested Python projects. Niobe (145) has grown beyond early-stage but remains the least exercised sidecar in dogfood runs.*
 
 ### Sentinel: Institutional Memory
 
@@ -799,7 +799,7 @@ The Dev Loop verifies every task. It does not verify the project. Task-level gat
 
 `sentinel_health_check` captures the data: version consistency, commit deltas, test count regression, dead imports. But the enforcement layer does not exist. Health checks are pull-based — you call them when you remember. Nobody remembers.
 
-**Partial resolution (v3.8)**: Morpheus `oil_change_interval` gate implemented. `morpheus_init` checks the last oil change record for the project. If commits exceed the interval (default 40, configurable via `MORPHEUS_OIL_CHANGE_INTERVAL`), it sets `oil_change_due` on the plan. `morpheus_advance` rejects CHECK on the first task until `morpheus_oil_change` is called to record the health check and clear the flag. `oil_changes` table (schema v6) stores the audit trail. 8 MCP tools (was 7). 185 tests (was 167).
+**Partial resolution (v3.8)**: Morpheus `oil_change_interval` gate implemented. `morpheus_init` checks the last oil change record for the project. If commits exceed the interval (default 40, configurable via `MORPHEUS_OIL_CHANGE_INTERVAL`), it sets `oil_change_due` on the plan. `morpheus_advance` rejects CHECK on the first task until `morpheus_oil_change` is called to record the health check and clear the flag. `oil_changes` table (schema v6) stores the audit trail. 8 MCP tools (was 7). 204 tests (was 167).
 
 **What's further needed**: The oil change should trigger not just `sentinel_health_check` but a full macro-lens FDMC sweep — an independent agent pass across the entire project, not scoped to any task's diff. This is the `/review` subagent concept applied at project scale instead of task scale. The micro lens `/review` already exists. The macro lens `/review` does not.
 
@@ -845,12 +845,15 @@ Plans are cross-cutting but tools are per-project. Four consecutive hardening ru
 22. ~~Seraph CWE-78 allowlisting~~ — Context-based false positive filter for B602-B607/B609. Drops findings where subprocess args are all hardcoded string literals. Keeps findings with variables or f-strings. 199 tests (was 193).
 23. ~~Morpheus self-test on startup~~ — `_self_test()` creates a temp plan, reads it back, deletes it. Sets `degraded_mode` flag on failure. `morpheus_init` prepends warning.
 24. ~~MICRO task size tier~~ — `MICRO = "micro"` in TaskSize enum. All gates accept empty evidence. Zero ceremony for 3-line fixes. 185 tests includes MICRO coverage.
-25. ~~Morpheus oil change gate~~ — `oil_changes` table (schema v6), `morpheus_oil_change` MCP tool, `oil_change_interval` config (default 40). `morpheus_init` sets `oil_change_due` when commits exceed threshold. `morpheus_advance` rejects CHECK on first task until oil change recorded. 8 MCP tools (was 7). 185 tests (was 167).
+25. ~~Morpheus oil change gate~~ — `oil_changes` table (schema v6), `morpheus_oil_change` MCP tool, `oil_change_interval` config (default 40). `morpheus_init` sets `oil_change_due` when commits exceed threshold. `morpheus_advance` rejects CHECK on first task until oil change recorded. 8 MCP tools (was 7).
 26. ~~Dev loop workspace inference~~ — Protocol-level fix: dev loop skill infers `project_root`/`repo_root` per task from file paths. No tool changes, smarter orchestration for mono-repo plans.
 27. ~~Seraph scoring integrity~~ — `evaluated` set starts empty; dimensions added only after successful computation. Fixes phantom 100% scores from failed steps. Seraph 0.1.2, 201 tests (was 199).
 28. ~~Merovingian schema fidelity~~ — anyOf/oneOf merges all branches into property union. Non-object schemas (arrays, primitives) captured via `__items__`/`__value__`. 200 tests (was 194).
 29. ~~Niobe partial failure transparency~~ — `SnapshotBatchResult` with failure details. MCP shows "N/M failed." CLI shows per-service warnings. 145 tests (was 142).
 30. ~~Cross-model oil change~~ — GPT macro-lens FDMC sweep found 3 real bugs Claude missed. Validated the oil change pattern and established cross-model review as a practice.
+31. ~~Hub-and-spoke multi-repo dispatch~~ — Hub agent plans at mono-repo level, spawns spoke agents in per-repo contexts with correct CWD. Replaces workspace inference. 7-task plan executed via Morpheus. Protocol doc + SKILL.md updated.
+32. ~~Size-aware gate relaxation + `test_command: none`~~ — SMALL tasks now skip `build_verified` (TEST), leaving only `tests_passed` in GRADE. `test_command: none` in plan frontmatter skips `build_verified` and `tests_passed` at any size — no more fabricated `echo` evidence. 204 tests (was 185). Validated via 4-task dogfood plan.
+33. ~~`SELECT *` column order fix~~ — Root cause of SMALL gate failures across R3–R6. `SELECT *` returned columns in ALTER TABLE order (size at index 9), but `_row_to_task` expected index 8. Every SMALL task silently read as MEDIUM in the live DB. Fixed with explicit column lists. Six dogfood runs of friction resolved by one line of SQL.
 
 ### Now: Validation + Polish (Q1-Q2 2026)
 
