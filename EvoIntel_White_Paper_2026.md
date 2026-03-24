@@ -368,6 +368,51 @@ These are **macro lens** problems. They only become visible when you step back a
 
 **Implementation**: `sentinel_health_check` already captures the data layer — version consistency, commit deltas, test count regression, dead imports. The enforcement layer is the natural next step: Morpheus `oil_change_interval` gate that rejects `morpheus_advance` when commits-since-last-health-check exceeds the threshold. Same evidence-submission pattern as every other gate. The micro lens asks "is this task correct?" The macro lens asks "is this project still healthy?" Both are necessary. Neither is sufficient alone.
 
+### Multi-Repo Orchestration: Hub-and-Spoke
+
+MCP tools are designed for single-repo contexts — SQLite at `.tool-name/`, CWD-based directory discovery, git root assumptions. The Dev Loop protocol was designed for single-repo contexts. When work spans multiple repos, you don't fight the architecture — you spawn agents that each operate in the context the tools expect, then coordinate at a higher level.
+
+**The problem**: Four consecutive hardening runs from a mono-repo parent directory produced the same three failures: Sentinel returned context for the wrong project (or none), Seraph returned VACUOUS on every assessment (CWD wasn't a git root), and test commands required `cd` into subdirectories. Workspace inference via `project_root`/`repo_root` parameters was a bandaid — it fixed Sentinel but couldn't fix Seraph's git diff mechanics.
+
+**The architecture**: Hub-and-spoke dispatch. A hub agent at the parent level plans holistically across all repos, then spawns spoke agents that execute in per-repo contexts:
+
+```
+Hub Agent (mono-repo root)
+    ├── Plans the work (single cross-cutting plan)
+    ├── Runs oil change / macro-lens sweep
+    ├── Splits tasks by repo
+    ├── Dispatches spoke agents in parallel
+    ├── Collects results
+    ├── Runs feedback sweep
+    ├── Updates whitepaper / docs
+    └── Pushes everything
+
+    ├── Spoke: seraph/ (3 tasks)
+    │   CWD = git root. Sentinel works. Seraph diffs work. Tests simple.
+    ├── Spoke: merovingian/ (2 tasks)
+    │   Same. Independent. Runs in parallel with seraph.
+    └── Spoke: niobe/ (1 task)
+        Same. All three finish, hub collects.
+```
+
+**Principle: plan holistically, execute locally.** The hub owns the cross-cutting context — what needs to change, why, and in what order. The spokes own the execution — each has correct CWD, correct `.sentinel/`, correct git root, simple test commands. MCP tools get the environment they were designed for without any tool changes.
+
+**What each layer handles:**
+
+| Concern | Hub | Spoke |
+|---------|-----|-------|
+| Planning | Cross-cutting plan, task grouping | N/A |
+| Oil change | `sentinel_health_check`, `morpheus_oil_change` | N/A |
+| Sentinel context | N/A | `sentinel_project_context` (correct CWD) |
+| Seraph grading | N/A | `seraph_assess` (correct git root) |
+| Test execution | N/A | `python3 -m pytest tests/` (no cd) |
+| Morpheus tracking | `morpheus_advance` per task | Prompt-only enforcement |
+| Feedback sweep | `sentinel_feedback`, `seraph_feedback` | N/A |
+| Evaluation | Dogfood analysis, whitepaper | N/A |
+| Git push | All repos | Commits only (no push) |
+
+**This is not specific to EvoIntel.** Any AI dev loop operating across multiple repos — mono-repos with multiple packages, microservice architectures, cross-repo refactors — hits the same CWD/git-root mismatch. The hub-and-spoke pattern is the general solution: plan at the scope of the problem, execute at the scope of the tools.
+
 ### Why This Matters
 
 The Dev Loop is the first autonomous development protocol that integrates project intelligence (Sentinel), quality verification (Seraph), runtime observation (Niobe), and dependency analysis (Merovingian) into a single coherent cycle with FDMC self-critique and feedback loop closure.
@@ -551,7 +596,7 @@ Each case study drove targeted protocol changes. The pattern was consistent: dog
 - **Morpheus self-test on startup** — `_self_test()` creates a temp plan, reads it back, deletes it. If it fails, `morpheus_init` returns a degraded-mode warning. Catches the class of bugs (NULL datetime, missing columns) that crashed Morpheus during R2 and R3.
 - **Seraph CWE-78 allowlisting** — Context-based false positive filter drops B602-B607/B609 findings where subprocess args are all hardcoded string literals. Follows the existing CWE-259 filter pattern.
 - **Sentinel solution_save fix** — Replaced UPSERT with explicit SELECT→UPDATE/INSERT to avoid ON CONFLICT clause failures on migration edge cases.
-- **Gap H (Macro-Lens Enforcement)** partially resolved — oil change gate implemented. **Gap I (Workspace-Aware Plans)** added — workspace inference in dev loop protocol, structured frontmatter planned.
+- **Gap H (Macro-Lens Enforcement)** partially resolved — oil change gate implemented. **Gap I (Workspace-Aware Plans)** resolved — hub-and-spoke dispatch replaces workspace inference. Plan holistically, execute locally.
 
 **Key insight**: The micro lens and the macro lens are complementary verification layers, like unit tests and integration tests. You don't skip unit tests because you have integration tests. You don't skip project-level sweeps because you have task-level gates. The oil change pattern formalizes this: incremental verification is necessary, periodic deep dives are required, and both must be enforced.
 
@@ -560,6 +605,7 @@ Each case study drove targeted protocol changes. The pattern was consistent: dog
 - **Merovingian schema fidelity** — `anyOf`/`oneOf` now merges all branches into a property union instead of taking only the first. Non-object schemas (arrays, primitives) now captured via `__items__` and `__value__` synthetic fields. Breaking change detection covers the full schema surface. 200 tests (was 194).
 - **Niobe partial failure transparency** — `create_all_snapshots` returns `SnapshotBatchResult` with both snapshots and failures. MCP tool reports "N/M services failed" with error details. Distinguishes "no services registered" from "all services failed." 145 tests (was 142).
 - **Cross-model oil change practice** — GPT performed the macro-lens FDMC sweep that found all three bugs above. Different models have different attention patterns and blind spots. The oil change practice should alternate models for maximum coverage.
+- **Hub-and-spoke architecture** — Resolves the workspace problem that plagued four consecutive hardening runs. Multi-repo plans are planned holistically at the parent level by a hub agent, then executed locally by spoke agents spawned in per-repo contexts. Each spoke gets correct CWD for Sentinel, correct git root for Seraph, simple test commands — without any tool changes. The hub collects results, runs feedback sweeps, coordinates pushes. Principle: plan holistically, execute locally. Resolves Gap I (Workspace-Aware Plans).
 
 ### v3.2 → v3.3 Changes
 
@@ -757,18 +803,17 @@ The Dev Loop verifies every task. It does not verify the project. Task-level gat
 
 **What's further needed**: The oil change should trigger not just `sentinel_health_check` but a full macro-lens FDMC sweep — an independent agent pass across the entire project, not scoped to any task's diff. This is the `/review` subagent concept applied at project scale instead of task scale. The micro lens `/review` already exists. The macro lens `/review` does not.
 
-### Gap I: Workspace-Aware Plans (Mono-Repo Development)
+### ~~Gap I~~ (Resolved): Workspace-Aware Plans → Hub-and-Spoke Dispatch
 
-Plans are cross-cutting but tools are per-project. A hardening plan that touches morpheus-mcp, sentinel, and merovingian in a single 9-task plan runs from the nebuchadnezzar mono-repo root. But Sentinel's `.sentinel/` is per-repo, Seraph needs `repo_root` per-repo, test commands must `cd` into each subdirectory, and git commits target different submodules.
+Plans are cross-cutting but tools are per-project. Four consecutive hardening runs from the mono-repo root produced the same three failures: Sentinel wrong context, Seraph VACUOUS on every assessment, test commands fragmented with `cd`.
 
-The tools already accept `project_root`/`repo_root` parameters. The gap is orchestration: the dev loop uses a single global CWD instead of resolving the correct root per task based on file paths.
+**Original approach (v3.8)**: workspace inference — dev loop infers `project_root`/`repo_root` per task from file paths. This was a bandaid: fixed Sentinel but couldn't fix Seraph's git diff mechanics. The tools accept the parameters but the fundamental problem is CWD — a process can only have one working directory.
 
-**What's needed (three phases)**:
-1. **Short term** — Dev loop skill infers correct `project_root`/`repo_root` per task from the task's `files:` list. No tool changes needed.
-2. **Medium term** — Workspace frontmatter in plan files: per-repo root, test command, Sentinel root. Morpheus parser reads it and passes the correct values per task.
-3. **Longer term** — `sentinel init --workspace` for mono-repo aggregated intelligence. A root-level `.sentinel/` that knows about child repos, enabling cross-repo co-change detection ("when you change morpheus-mcp/engine.py, you usually also change the dev-loop skill").
+**Resolution (v3.9)**: Hub-and-spoke dispatch. The hub agent plans holistically at the mono-repo level, then spawns spoke agents that execute in per-repo contexts with correct CWD. Each spoke gets a natural environment — correct `.sentinel/`, correct git root, simple test commands — without any tool changes. The hub collects results, runs feedback sweeps, and coordinates. See "Multi-Repo Orchestration: Hub-and-Spoke" in Part IV.
 
-**Why not split plans?** Splitting cross-repo plans into per-repo sessions fragments context. The agent in the Sentinel session doesn't know what the Morpheus session discovered. Task 6 (Morpheus↔Sentinel integration) required understanding both tools. Task 8 (confidence qualifiers) was informed by false-positive feedback from Task 3's review. The cross-cutting intelligence is the value. Splitting the plans kills it.
+**Why hub-and-spoke beats workspace inference**: The original objection to splitting was "you lose cross-cutting context." The hub-and-spoke preserves it: the hub sees the whole plan, the whole oil change, the whole dogfood analysis. The spokes are execution-only — they don't need cross-repo context to implement, test, and commit within their repo. The cross-cutting intelligence lives where it belongs (the coordinator), not where it doesn't (the implementer).
+
+**What remains**: `sentinel init --workspace` for root-level aggregated intelligence (cross-repo co-change detection). This is orthogonal to hub-and-spoke — it would give the hub better planning intelligence, not fix execution.
 
 ---
 
@@ -822,8 +867,8 @@ The tools already accept `project_root`/`repo_root` parameters. The gap is orche
 2. Add Snyk Studio MCP for enterprise-grade SCA/SBOM
 3. Publish the Five Blindnesses article + launch content sequence
 4. Spec-first layer in `/plan` command for complex features
-5. Workspace frontmatter in Morpheus parser — structured per-repo root, test command, Sentinel root in plan files
-6. Sentinel mono-repo init — `sentinel init --workspace` for root-level `.sentinel/` aggregating knowledge from child repos
+5. Hub-and-spoke multi-repo dispatch — dev loop skill detects multi-repo plans, splits tasks by repo, spawns per-repo spoke agents, collects results at hub. Replaces workspace frontmatter approach.
+6. Sentinel mono-repo init — `sentinel init --workspace` for root-level `.sentinel/` aggregating knowledge from child repos (orthogonal to hub-and-spoke — gives hub better planning intelligence)
 
 ### Later: Calibration + Cross-Sidecar Wiring (Q3-Q4 2026)
 
