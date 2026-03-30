@@ -33,11 +33,13 @@ If EvoIntel was destroyed tomorrow, this notebook is how you rebuild it.
 - [The Timing Problem](#timing-problem)
 - [Tiered Memory: The Deeper Architecture Problem](#tiered-memory)
 - [The Reclassification: 54 Tools, 5 Matter Routinely](#tool-reclassification)
+- [The Supervisor: AWARE for AI Coding Agents](#supervisor)
 - [Remaining Gaps](#gaps)
 - [Build Log: What Was Done (Q1 2026)](#build-log)
 - [Roadmap: What's Ahead](#roadmap)
 - [What's Next: sentinel-whisper](#whats-next)
 - [Current State](#current-state)
+- [Benchmark Suite: How to Re-Run the A/B Experiment](#benchmark)
 - [Artifacts Index](#artifacts)
 - [References](#references)
 
@@ -500,6 +502,43 @@ EvoIntel isn't six MCP servers. It's a cognitive architecture for AI agents. The
 
 **This framing is not for the whitepaper yet.** It's a design principle. When sentinel-whisper proves the supervisor concept works, and when the orienting response (contradict-only whisper) proves it reduces noise, then this framework earns its place in the architecture description. Until then, it's a lab notebook entry — a thought that needs to be tested before it becomes a claim.
 
+### External Validation: EverMemOS (March 30, 2026)
+
+*Origin: Nicholas found the EverMemOS white paper — "The Memory OS for Agentic AI" (arXiv:2601.02163, January 2026, by EverMind/Shanda Group). Real work: open source code, benchmark-validated, commercial cloud service launched February 2026.*
+
+**What they built**: A three-phase memory lifecycle for LLMs inspired by biological engrams (neuroscience). Episodic traces → semantic consolidation → reconstructive recollection. Structured memory hierarchy: MemCell (atomic episodes) → MemScene (thematic clusters) → User Profile (stable traits). Achieved 93% accuracy on LoCoMo benchmark using ~2.3k tokens where full-context approaches need the entire conversation.
+
+**What they proved that validates our approach:**
+- Flat memory fragments fail because they lack consolidation into higher-order structures → validates our tiered memory architecture
+- Structured memory with fewer tokens outperforms raw full-context → validates our MCP sidecar design (~4k token caps, pre-computed intelligence)
+- "High-quality memory requires not only precise remembering but also precise forgetting" → validates our contradict-only filtering (habituation = precise forgetting)
+
+**What they have that we should learn from:**
+
+1. **Foresight signals with temporal validity intervals.** A memory entry with `[t_start, t_end]` that expires automatically. Example: "this convention applies until the auth migration is complete." Our Sentinel conventions are permanent until feedback changes them. Time-bounded entries would reduce stale convention noise without manual cleanup. Worth adding to Sentinel.
+
+2. **Sufficiency verification.** Before passing retrieved context to the downstream task, an LLM checks "is this enough?" and triggers supplementary retrieval if not. Our sentinel-whisper currently returns whatever matches. A sufficiency check would ask "does this whisper give the agent what it needs for this specific write, or should we pull more context?" Worth considering for the hooks architecture.
+
+**What they don't have that we do:**
+
+| Capability | EverMemOS | EvoIntel |
+|-----------|-----------|---------|
+| Enforcement (gates that block) | No — trusts agent to use memory | Yes — Morpheus gates, sibling_read |
+| Proactive surfacing | No — pull-only (agent queries) | Yes — hooks push context by intent |
+| Code-domain intelligence | No — domain-agnostic conversations | Yes — conventions, co-changes, mutations, security |
+| Verification | No | Yes — Seraph, FDMC |
+| Supervisor (AWARE) | No | Designed, partially built |
+
+**The fundamental difference:**
+- EverMemOS = best memory layer without enforcement
+- EvoIntel = best enforcement layer without sophisticated memory
+
+They build excellent memory and trust the agent to use it. Our entire body of work — three rubber-stamp case studies, the A/B experiment, the AWARE framework — is about what happens when you trust the agent. It skips.
+
+**The convergence opportunity:** EverMemOS's consolidation pipeline (MemCell → MemScene → Profile) applied to Sentinel's domain-specific intelligence (conventions, co-changes, pitfalls), with EvoIntel's enforcement layer ensuring the agent actually uses the memory it's given. Memory quality from EverMemOS. Enforcement from EvoIntel. Neither is complete without the other.
+
+*Source: [EverMemOS paper (arXiv:2601.02163)](https://arxiv.org/abs/2601.02163) | [GitHub](https://github.com/EverMind-AI/EverMemOS) | [EverMind](https://evermind.ai/)*
+
 ---
 
 <a id="tool-reclassification"></a>
@@ -602,6 +641,120 @@ What stays:
 
 ---
 
+<a id="supervisor"></a>
+## The Supervisor: AWARE for AI Coding Agents (March 30, 2026)
+
+*Origin: Nicholas pushed back on killing the skill. "Don't throw the baby out with the bath water. The skill is our gateway. Remember the supervisor concept?" He was right. The skill stays. It gets a boss.*
+
+### The problem we almost got wrong
+
+After the A/B experiment showed 94% of MCP tokens are ceremony, the instinct was to strip the skill down or kill it. But the skill isn't the problem. The skill is the brain — it knows how to orchestrate 54 tools through a coherent development cycle. The problem is the skill runs at one speed: maximum. Every task gets the same ceremony regardless of whether it needs it.
+
+The DIRECT/LIGHTWEIGHT/FULL modes added on March 29 were a static fix. They look at task count once and decide. A real fix is dynamic — adjusting per task, per file, per moment, based on what's actually happening.
+
+### What the research found
+
+We surveyed every major AI coding tool, academic framework, and production system for dynamic verification adjustment. Full research: `~/dev/experiments/evointel-ab/results/research-supervisor-architecture.md`
+
+**Nobody has built this.** Every shipping tool either runs all checks or none.
+
+| Tool | Verification | Adapts? |
+|------|-------------|---------|
+| Spotify Honk | Auto-activates verifiers by repo contents | Per-repo, not per-task |
+| GitHub Copilot Agent | Configurable validation tools | Static admin toggles |
+| Cursor | Bugbot reviews all changes | Always-on, no dial |
+| Aider | Lint + test after every edit | Fixed |
+| Claude Code | 21 hook events, user-configured | Not self-adaptive |
+| **EvoIntel (Morpheus)** | **Task size tiers drive gate intensity** | **Closest thing shipping** |
+
+The academic frameworks exist but aren't wired into anything:
+- **MAPE-K** (IBM, 2003) — Monitor, Analyze, Plan, Execute, Knowledge. Foundational autonomic computing loop. Applied to cloud autoscaling and self-healing microservices, never to coding agent verification.
+- **AWARE** (FSE 2025) — Assess, Weigh, Act, Reflect, Enrich. Improves on MAPE-K with proactive adaptation, distributed execution, and continuous learning.
+- **Risk-aware budgeted control** — "Low-risk actions run with minimal deliberation. High-risk actions trigger additional verification." Exact concept. Exists only in survey literature.
+- **Hierarchical cognitive architecture** — Reactive/deliberative/meta-cognitive layers. The meta-cognitive layer monitors whether strategies are working and switches policies.
+
+### AWARE maps to EvoIntel
+
+| AWARE Step | What It Does | EvoIntel Equivalent | Exists? |
+|-----------|-------------|--------------------|---------|
+| **Assess** | Evaluate task risk before starting | Sentinel hot_files + pitfalls + co_changes + Morpheus task size + Merovingian contract detection | **Yes** (data exists, not combined into a risk score) |
+| **Weigh** | Decide verification intensity | DIRECT/LIGHTWEIGHT/FULL mode selection | **Partial** (static, based on task count) |
+| **Act** | Execute the selected verification level | Skill + 54 MCP tools + hooks | **Yes** |
+| **Reflect** | Did the gates catch anything real? | Nothing tracks gate value | **No — this is the key missing piece** |
+| **Enrich** | Update policies based on outcomes | Sentinel feedback tools exist but aren't fed by Reflect | **Partial** |
+
+### The architecture
+
+```
+                    ┌─────────────┐
+                    │  SUPERVISOR  │
+                    │   (AWARE)    │
+                    └──────┬──────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+         ┌────▼────┐  ┌───▼────┐  ┌───▼────┐
+         │ ASSESS  │  │ WEIGH  │  │REFLECT │
+         │Sentinel │  │ Mode   │  │ Did it │
+         │risk data│  │select  │  │ help?  │
+         └─────────┘  └───┬────┘  └───┬────┘
+                          │           │
+                    ┌─────▼─────┐     │
+                    │   SKILL   │     │
+                    │(right lvl)│     │
+                    └─────┬─────┘     │
+                          │           │
+              ┌───────────┼───────────┤
+              │           │           │
+         ┌────▼────┐ ┌───▼────┐ ┌───▼────┐
+         │  Hooks  │ │  MCP   │ │ENRICH  │
+         │(sensing)│ │ Tools  │ │(learn) │
+         └─────────┘ └────────┘ └────────┘
+```
+
+The supervisor sits above the skill, not replacing it. It decides how much of the skill to engage. The skill remains the orchestration brain. The hooks provide sensing. The MCP tools provide intelligence. The Reflect/Enrich loop makes the system learn over time.
+
+### What needs to be built (in order)
+
+**Step 1: sentinel-whisper contradict-only filter** (this week)
+The sensing layer. Compare conventions against the content being written. Only fire when they conflict. Proves that targeted injection changes behavior. This is the Assess step for individual file writes.
+
+**Step 2: Reflect table** (~50 lines of code)
+One SQLite table in Morpheus: `gate_outcomes`. Per task: which gates fired, which caught something real (agent changed code because of it), which were noise. This is the data layer for the Reflect step. Without it, we're guessing about which gates produce value.
+
+**Step 3: Dynamic Weigh** (after 20-30 tasks of Reflect data)
+Replace the static if/else (task count → mode) with a function that reads: Sentinel risk data for the files being touched + historical gate outcomes from the Reflect table. Output: which specific tools to engage for THIS task. Not a mode. A per-task tool selection.
+
+**Step 4: Enrich loop** (after Step 3 is validated)
+Auto-feed Reflect outcomes into Sentinel feedback. "Seraph caught a real mutation survival issue on auth.py" → Sentinel learns auth.py is high-risk → future Assess scores auth.py higher → future Weigh engages more verification. The system learns.
+
+**Step 5: Macro-lens supervisor** (future)
+The oil change pattern, but driven by the supervisor instead of a fixed commit count. The supervisor monitors Reflect data across tasks and says "convention drift is accumulating, trigger a macro-lens sweep" instead of waiting for N commits.
+
+### Why this doesn't kill anything
+
+- All 54 MCP interfaces stay
+- All 4,042 tests stay
+- The skill stays (it's the Act step)
+- The hooks add sensing (Assess + Reflect)
+- The supervisor adds intelligence about WHEN to use WHAT
+
+Nothing gets destroyed. The system gets a brain that learns when to engage and when to stay quiet. The static modes (DIRECT/LIGHTWEIGHT/FULL) are the training wheels. The AWARE loop is the bicycle.
+
+### Why this could be revolutionary
+
+Every AI coding tool runs verification at one speed. Spotify runs all verifiers. GitHub runs all scans. Aider lints everything. Nobody asks "does this task actually need this check?"
+
+A supervisor that dynamically allocates verification based on task risk, learns from outcomes, and gets more efficient over time — that's adaptive verification infrastructure. The academic frameworks (MAPE-K, AWARE, risk-aware budgeted control) have been describing this for years. Nobody has built it for AI coding agents.
+
+EvoIntel already has the closest thing shipping: task size tiers driving gate intensity. The gap between "static tiers" and "adaptive supervisor" is four small builds, each independently testable.
+
+**The evolution**: Static gates (v1) → Size-aware gates (v3.2) → Project-aware modes (v3.9) → Risk-adaptive supervisor (v4.0). Each step builds on the last. Nothing gets thrown away.
+
+*"There is always a better way to do something. If you are not evolving then you are drowning."*
+
+---
+
 <a id="gaps"></a>
 ## Remaining Gaps
 
@@ -620,6 +773,7 @@ What stays:
 | **K: Seraph in containers** | **New** (2026-03-29) | mutmut won't install cleanly in Docker/CI. Signature capability broken in most common deployment. |
 | **L: Token tracking** | **New** (2026-03-29) | No tool measures token cost of MCP calls. Most important cost metric doesn't exist. |
 | **M: Intelligence timing** | **New** (2026-03-29) | All intelligence fires pre-flight (CHECK) or post-flight (GRADE). Nothing fires during CODE. `sentinel-whisper` + hooks is the proposed fix. |
+| **N: Adaptive supervisor** | **New** (2026-03-30) | No system dynamically adjusts verification intensity per task based on risk. Static modes exist (DIRECT/LIGHTWEIGHT/FULL). AWARE framework identified as the target architecture. Needs: risk scoring (Assess), Reflect table (gate outcomes), dynamic Weigh, Enrich loop. |
 
 ---
 
@@ -648,20 +802,22 @@ What stays:
 <a id="roadmap"></a>
 ## Roadmap: What's Ahead
 
-### Now: Validate sentinel-whisper (Q2 2026)
-1. Dogfood `sentinel-whisper` for 1 week during real development
-2. Measure: how often it fires, how often it changes decisions
+### Now: Validate + Supervisor Foundation (Q2 2026)
+1. sentinel-whisper contradict-only filter (sensing layer)
+2. Dogfood whisper for 1 week — measure: fires, changes decisions, noise rate
 3. If validated: wire into PreToolUse hook on Write|Edit
-4. Enable full Seraph grading with mutations on real projects
-5. Dogfood `/review` subagent end-to-end
-6. Publish dev-loop plugin to Claude Code marketplace
+4. Build Reflect table in Morpheus (gate_outcomes — which gates caught real issues)
+5. Accumulate 20-30 tasks of Reflect data
+6. Enable full Seraph grading with mutations on real projects
+7. Publish dev-loop plugin to Claude Code marketplace
 
-### Next: Hooks Architecture + Enterprise (Q2-Q3 2026)
-1. `sentinel-whisper` PreToolUse hook (if validated)
-2. Seraph pre-commit hook (static analysis before commit, mutations on final commit)
-3. Memory survival hooks (PreCompact save, SessionStart restore)
-4. `morpheus_verdict` — unified pre-merge risk surface
-5. Spec-first layer in `/plan` for complex features
+### Next: Adaptive Supervisor + Hooks (Q2-Q3 2026)
+1. Dynamic Weigh — replace static mode selection with risk-score-driven per-task tool selection
+2. Enrich loop — auto-feed Reflect outcomes into Sentinel feedback
+3. Seraph pre-commit hook (static analysis before commit, mutations on final commit)
+4. Memory survival hooks (PreCompact save, SessionStart restore)
+5. `morpheus_verdict` — unified pre-merge risk surface
+6. Spec-first layer in `/plan` for complex features
 
 ### Later: Calibration + Cross-Sidecar Wiring (Q3-Q4 2026)
 1. Closed-loop calibration: Seraph grades → Niobe runtime outcomes
@@ -700,18 +856,18 @@ What stays:
 ---
 
 <a id="current-state"></a>
-## Current State (March 29, 2026)
+## Current State (March 30, 2026)
 
 ### Test Counts
 | Tool | Tests | Change |
 |------|-------|--------|
-| Sentinel | 424 | +6 (whisper) |
+| Sentinel | 431 | +13 (whisper + contradict filter) |
 | Anno | 2,868 | — |
-| Morpheus | 204 | — |
+| Morpheus | 208 | +4 (gate_outcomes Reflect table) |
 | Seraph | 201 | — |
 | Merovingian | 200 | — |
 | Niobe | 145 | — |
-| **Total** | **4,042** | |
+| **Total** | **4,053** | |
 
 ### Known Gaps
 - **Seraph greenfield**: Scores 100/100 on new code. Mutation testing can't discriminate without a meaningful diff baseline. Needs a greenfield-specific scoring mode.
@@ -726,6 +882,114 @@ What stays:
 | ≤3 tasks, all small/micro | DIRECT | None | **Always** |
 | 4-7 tasks or any medium | LIGHTWEIGHT | Sentinel + plan tracking | Always |
 | 8+ tasks or any large | FULL | All servers, all gates | Always |
+
+---
+
+<a id="benchmark"></a>
+## Benchmark Suite: How to Re-Run the A/B Experiment
+
+Every time EvoIntel is upgraded, this benchmark should be re-run to measure whether the change improved, degraded, or had no effect on code quality. The baseline results from March 29, 2026 are the comparison point.
+
+### What it tests
+
+3 project sizes × 3 conditions = 9 isolated builds. Each run produces a codebase that can be measured for quality.
+
+| Project | Spec File | What It Builds |
+|---------|-----------|---------------|
+| Small | `prompts/small.md` | Markdown link checker CLI (5 requirements) |
+| Medium | `prompts/medium.md` | Bookmark manager REST API (9 requirements) |
+| Large | `prompts/large.md` | Data quality ETL pipeline (14 requirements) |
+
+| Condition | Docker Image | What's Active |
+|-----------|-------------|---------------|
+| Raw | `evointel-lab:base` | Nothing. Pure Claude. |
+| Guided | `evointel-lab:guided` | FDMC in CLAUDE.md only. |
+| Full | `evointel-lab:full` | CLAUDE.md + MCP servers + explicit tool usage instructions. |
+
+### How to run it
+
+```bash
+cd ~/dev/experiments/evointel-ab/docker
+
+# 1. Rebuild images (picks up latest EvoIntel versions)
+./lab.sh build
+
+# 2. Verify prompts haven't changed
+sha256sum -c ../results/prompt-checksums.txt
+
+# 3. Run all 9 experiments
+#    Auth: mount ~/.claude/ for Max plan OAuth
+#    Script skips completed runs (delete *-end.txt to force re-run)
+./run-all.sh
+
+# 4. Collect results
+#    Outputs land in ~/dev/experiments/evointel-ab/results/
+#    Per-run: <run>-claude-output.txt, <run>-eval.txt, <run>-start/end.txt
+#    Snapshots: docker images evointel-snap:*
+```
+
+### How to evaluate results
+
+```bash
+# Automated metrics (from snapshots)
+for run in small-raw small-guided small-full medium-raw medium-guided medium-full large-raw large-guided large-full; do
+    docker run --rm --entrypoint="" "evointel-snap:${run}" bash -c '
+        cd ~/experiment
+        echo "COMMITS: $(git log --oneline | wc -l)"
+        echo "LOC: $(find . -name "*.py" -not -path "*/__pycache__/*" -not -path "*/.venv/*" -exec cat {} + | wc -l)"
+        echo "TESTS: $(python3 -m pytest -q --tb=no 2>&1 | tail -1)"
+    '
+done
+
+# Blind FDMC review (use the anonymization script)
+# See: results/blind-review/fdmc-blind-review.md for methodology
+```
+
+### Baseline results (March 29, 2026 — v3.9 + sentinel-whisper)
+
+| Metric | S-Raw | S-Guided | S-Full | M-Raw | M-Guided | M-Full | L-Raw | L-Guided | L-Full |
+|--------|-------|----------|--------|-------|----------|--------|-------|----------|--------|
+| Time | 2m | 2m | 9m | 7m | 6m | 9m | 10m | 12m | 18m |
+| LOC | 569 | 626 | 929 | 1,211 | 1,119 | 1,362 | 2,989 | 3,016 | 3,065 |
+| Tests | 35 | 33 | 48 | 38 | 34 | 37 | 110 | 125 | 118 |
+| Commits | 2 | 2 | 6 | 2 | 2 | 3 | 3 | 5 | 4 |
+| FDMC violations (blind) | 8 | 3 | 6 | 9 | 12 | 6 | 15 | 4 | 7 |
+
+| Derived | Raw avg | Guided avg | Full avg |
+|---------|---------|-----------|---------|
+| FDMC violations | 10.7 | 6.3 | 6.3 |
+| Std deviation | 3.8 | 4.9 | **0.6** |
+
+**The number to beat**: Full condition std dev of 0.6. Any upgrade should maintain or improve this predictability.
+
+### What to compare after each upgrade
+
+1. **Did violations go down?** Compare per-cell counts against baseline.
+2. **Did variance stay low?** Full condition std dev should remain ≤ 1.0.
+3. **Did time overhead decrease?** The reclassification and hooks should reduce the 29-350% overhead.
+4. **Did token cost decrease?** If we add token tracking (Gap L), this becomes the primary efficiency metric.
+5. **Did the Full condition use MCP tools?** Check claude-output.txt for Sentinel/Seraph/Morpheus mentions. First round failed because Claude ignored tools when the prompt was too vague.
+
+### Known issues with the benchmark
+
+- **Auth**: Raw/Guided runs used API key (first round). Full runs used Max plan OAuth (re-run). Standardize on one auth method for consistency.
+- **Seraph post-hoc**: Failed — mutmut won't install in containers (Gap K). All 9 scored 100/100. Not discriminating.
+- **Token counts**: `-p` mode doesn't report tokens. Missing the most important cost metric.
+- **n=1**: Single run per cell. Results are directional, not statistically significant. Run n=3 on Large for any publishable claim.
+- **Prompt format for Full**: Must explicitly instruct Claude to use MCP tools. The prompt "build this" doesn't trigger tool usage. See `run-all.sh` for the working prompt.
+
+### Files
+
+| Artifact | Location |
+|----------|----------|
+| Benchmark automation | `~/dev/experiments/evointel-ab/docker/run-all.sh` |
+| Docker images | `~/dev/experiments/evointel-ab/docker/Dockerfile.{lab,guided,full}` |
+| Project prompts | `~/dev/experiments/evointel-ab/prompts/{small,medium,large}.md` |
+| Prompt checksums | `~/dev/experiments/evointel-ab/results/prompt-checksums.txt` |
+| Baseline results | `~/dev/experiments/evointel-ab/results/scorecard.md` |
+| Baseline report | `~/dev/experiments/evointel-ab/results/REPORT.md` |
+| Blind review protocol | `~/dev/experiments/evointel-ab/results/blind-review/` |
+| Docker snapshots | `docker images evointel-snap:*` (9 images) |
 
 ---
 
@@ -754,7 +1018,8 @@ What stays:
 | Code DNA analysis | `~/dev/experiments/evointel-ab/results/code-dna-analysis.md` |
 | Blind FDMC review | `~/dev/experiments/evointel-ab/results/blind-review/fdmc-blind-review.md` |
 | Answer key | `~/dev/experiments/evointel-ab/.answer-key/blind-review-key.txt` |
-| Industry research | `~/dev/experiments/evointel-ab/results/research-inline-feedback.md` |
+| Industry research (inline feedback) | `~/dev/experiments/evointel-ab/results/research-inline-feedback.md` |
+| Supervisor architecture research | `~/dev/experiments/evointel-ab/results/research-supervisor-architecture.md` |
 | Next-gen proposal | `~/dev/experiments/evointel-ab/results/PROPOSAL-next-gen.md` |
 | Docker snapshots | `evointel-snap:{small,medium,large}-{raw,guided,full}` |
 | Run automation | `~/dev/experiments/evointel-ab/docker/run-all.sh` |
@@ -788,6 +1053,14 @@ What stays:
 - [Spotify Honk: Feedback Loops for Background Coding Agents](https://engineering.atspotify.com/2025/12/feedback-loops-background-coding-agents-part-3) — LLM judge vetoes 25%, agent corrects 50%
 - [Addy Osmani — Self-Improving Coding Agents](https://addyosmani.com/blog/self-improving-agents/)
 - [Gene Kim — The Three Developer Loops](https://itrevolution.com/articles/the-three-developer-loops-a-new-framework-for-ai-assisted-coding/)
+
+### Memory Architecture
+- [EverMemOS (arXiv:2601.02163)](https://arxiv.org/abs/2601.02163) — Three-phase memory lifecycle for LLMs. Foresight signals, semantic consolidation, sufficiency verification. SOTA on LoCoMo (93%) and LongMemEval (83%).
+
+### Adaptive Systems
+- [AWARE Framework (FSE 2025)](https://hal.science/hal-04992342v1) — Assess, Weigh, Act, Reflect, Enrich. Proactive self-adaptive systems.
+- [AI Agent Systems Survey](https://arxiv.org/html/2601.01743v1) — Risk-aware budgeted control for agent architectures
+- [Reflexion (NeurIPS 2023)](https://arxiv.org/abs/2303.11366) — Verbal self-critique stored in episodic memory
 
 ### Standards
 - [MCP donated to Agentic AI Foundation](https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation)
